@@ -121,6 +121,32 @@ fn get_all_products(state: State<'_, DbState>) -> Result<Vec<Product>, String> {
 }
 
 #[tauri::command]
+fn update_product(state: State<'_, DbState>, barcode: String, name: String, price: i64, stock: i32) -> Result<(), String> {
+    let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+
+    conn.execute(
+        "UPDATE products SET name = ?1, price = ?2, stock = ?3 WHERE barcode = ?4",
+        rusqlite::params![name, price, stock, barcode],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+fn delete_product(state: State<'_, DbState>, barcode: String) -> Result<(), String> {
+    let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+
+    conn.execute(
+        "DELETE FROM products WHERE barcode = ?1",
+        rusqlite::params![barcode],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
 fn process_transaction(state: State<'_, DbState>, items: Vec<SaleItem>, total: i64) -> Result<(), String> {
     let mut conn_guard = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     let tx = conn_guard.transaction().map_err(|e| e.to_string())?;
@@ -143,11 +169,28 @@ fn process_transaction(state: State<'_, DbState>, items: Vec<SaleItem>, total: i
 }
 
 #[tauri::command]
-fn get_sales_report(state: State<'_, DbState>) -> Result<Vec<SaleReport>, String> {
+fn get_sales_report(state: State<'_, DbState>, month: String, year: String) -> Result<Vec<SaleReport>, String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     
+    let mut query = "SELECT id, total_price, datetime(created_at, 'localtime') FROM sales".to_string();
+    let mut conditions = Vec::new();
+
+    if !year.is_empty() {
+        conditions.push(format!("strftime('%Y', datetime(created_at, 'localtime')) = '{}'", year));
+    }
+    if !month.is_empty() {
+        conditions.push(format!("strftime('%m', datetime(created_at, 'localtime')) = '{}'", month));
+    }
+    
+    if !conditions.is_empty() {
+        query.push_str(" WHERE ");
+        query.push_str(&conditions.join(" AND "));
+    }
+    
+    query.push_str(" ORDER BY id DESC LIMIT 2000");
+
     let mut stmt = conn
-        .prepare("SELECT id, total_price, datetime(created_at, 'localtime') FROM sales ORDER BY id DESC LIMIT 50")
+        .prepare(&query)
         .map_err(|e| e.to_string())?;
 
     let rows = stmt.query_map([], |row| {
@@ -164,6 +207,19 @@ fn get_sales_report(state: State<'_, DbState>) -> Result<Vec<SaleReport>, String
     }
 
     Ok(reports)
+}
+
+#[tauri::command]
+fn get_weekly_revenue(state: State<'_, DbState>) -> Result<i64, String> {
+    let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+    
+    let mut stmt = conn
+        .prepare("SELECT COALESCE(SUM(total_price), 0) FROM sales WHERE datetime(created_at, 'localtime') >= datetime('now', '-7 days', 'localtime')")
+        .map_err(|e| e.to_string())?;
+
+    let sum_total: i64 = stmt.query_row([], |row| row.get(0)).unwrap_or(0);
+
+    Ok(sum_total)
 }
 
 fn main() {
@@ -191,7 +247,10 @@ fn main() {
             add_product,
             process_transaction,
             get_sales_report,
-            get_all_products
+            get_all_products,
+            update_product,
+            delete_product,
+            get_weekly_revenue
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

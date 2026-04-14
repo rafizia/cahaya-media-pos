@@ -44,19 +44,33 @@ function App() {
   const [itemToEdit, setItemToEdit] = useState<CartItem | null>(null);
   const [editQuantity, setEditQuantity] = useState<number | "">("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [addStatusModal, setAddStatusModal] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [editProductName, setEditProductName] = useState("");
+  const [editProductPrice, setEditProductPrice] = useState<number | "">("");
+  const [editProductStock, setEditProductStock] = useState<number | "">("");
+  
+  const [dbProductToDelete, setDbProductToDelete] = useState<Product | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const totalHarga = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const kembalian = typeof payment === 'number' ? Math.max(0, payment - totalHarga) : 0;
 
+  const currentDate = new Date();
+  const [filterMonth, setFilterMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
+  const [filterYear, setFilterYear] = useState(currentDate.getFullYear().toString());
+  const [weeklyRevenue, setWeeklyRevenue] = useState<number>(0);
+
   useEffect(() => {
     if (mode === "laporan") {
       fetchReports();
-    } else if (mode === "kasir") {
+      fetchWeeklyRevenue();
+    } else if (mode === "kasir" || mode === "input") {
       fetchAllProducts();
     }
-  }, [mode]);
+  }, [mode, filterMonth, filterYear]);
 
   const fetchAllProducts = async () => {
     try {
@@ -69,8 +83,17 @@ function App() {
 
   const fetchReports = async () => {
     try {
-      const data: SaleReport[] = await invoke("get_sales_report");
+      const data: SaleReport[] = await invoke("get_sales_report", { month: filterMonth, year: filterYear });
       setReports(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchWeeklyRevenue = async () => {
+    try {
+      const data: number = await invoke("get_weekly_revenue");
+      setWeeklyRevenue(data);
     } catch (error) {
       console.error(error);
     }
@@ -78,7 +101,6 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage("Sedang menyimpan...");
     try {
       await invoke("add_product", {
         barcode,
@@ -87,16 +109,16 @@ function App() {
         stock: Number(stock),
       });
 
-      setMessage(`Berhasil menyimpan: ${name}`);
+      setAddStatusModal({ type: 'success', message: `Barang ${name} berhasil disimpan ke database` });
       setBarcode("");
       setName("");
       setPrice("");
       setStock("");
-      if (mode === 'kasir') {
+      if (mode === 'input' || mode === 'kasir') {
          fetchAllProducts();
       }
     } catch (error) {
-      setMessage(`Gagal: ${error}`);
+      setAddStatusModal({ type: 'error', message: String(error) });
     }
   };
 
@@ -130,11 +152,12 @@ function App() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    /*
     if (totalHarga > 0 && (typeof payment !== 'number' || payment < totalHarga)) {
       setMessage("Uang bayar kurang!");
       setTimeout(() => setMessage(""), 3000);
       return;
-    }
+    }*/
 
     try {
       await invoke("process_transaction", {
@@ -183,6 +206,47 @@ function App() {
     }
   };
 
+  const handleEditProductClick = (p: Product) => {
+    setProductToEdit(p);
+    setEditProductName(p.name);
+    setEditProductPrice(p.price);
+    setEditProductStock(p.stock);
+  };
+
+  const saveProductEdits = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (productToEdit && editProductName !== "" && editProductPrice !== "" && editProductStock !== "") {
+       try {
+          await invoke("update_product", {
+             barcode: productToEdit.barcode,
+             name: editProductName,
+             price: Number(editProductPrice),
+             stock: Number(editProductStock),
+          });
+          setMessage(`Berhasil mengubah data produk: ${productToEdit.name}`);
+          setTimeout(() => setMessage(""), 3000);
+          setProductToEdit(null);
+          fetchAllProducts();
+       } catch (err) {
+          setMessage(`Gagal update produk: ${err}`);
+       }
+    }
+  };
+
+  const confirmDeleteDbProduct = async () => {
+    if (dbProductToDelete) {
+      try {
+        await invoke("delete_product", { barcode: dbProductToDelete.barcode });
+        setMessage(`Barang ${dbProductToDelete.name} berhasil dihapus`);
+        setTimeout(() => setMessage(""), 3000);
+        setDbProductToDelete(null);
+        fetchAllProducts();
+      } catch (err) {
+        setMessage(`Gagal menghapus produk: ${err}`);
+      }
+    }
+  };
+
   // Icons as functional components to keep it clean
   const IconKasir = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
@@ -198,6 +262,9 @@ function App() {
   );
   const IconCheck = () => (
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  );
+  const IconX = () => (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
   );
 
   return (
@@ -356,24 +423,26 @@ function App() {
         )}
 
         {mode === "input" && (
-          <div className="bg-white rounded-2xl p-6 flex-1 overflow-y-auto shadow-sm">
-            <h1 className="text-2xl font-bold text-center mb-6 mt-4">Input Barang Baru</h1>
-            <div className="max-w-[500px] mx-auto flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="font-semibold text-sm">Barcode Produk:</label>
-                <input
-                  type="text"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="Scan barcode di sini..."
-                  required
-                  autoFocus
-                  className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
-                />
-              </div>
+          <div className="flex gap-4 h-full">
+            {/* Kolom Kiri: Input Form */}
+            <div className="bg-white rounded-2xl p-6 flex flex-col h-full flex-5 shadow-sm overflow-y-auto w-full">
+              <h1 className="text-2xl font-bold text-center mb-6 mt-2">Input Barang Baru</h1>
+              <form onSubmit={handleSubmit} className="w-full mx-auto flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="font-semibold text-lg">Barcode Produk:</label>
+                  <input
+                    type="text"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    placeholder="Scan barcode di sini..."
+                    required
+                    autoFocus
+                    className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
+                  />
+                </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-sm">Nama Barang:</label>
+                <label className="font-semibold text-lg">Nama Barang:</label>
                 <input
                   type="text"
                   value={name}
@@ -385,7 +454,7 @@ function App() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-sm">Harga Jual (Rp):</label>
+                <label className="font-semibold text-lg">Harga Jual (Rp):</label>
                 <input
                   type="number"
                   value={price}
@@ -396,28 +465,131 @@ function App() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-sm">Stok Awal:</label>
+                <label className="font-semibold text-lg">Stok Awal:</label>
                 <input
                   type="number"
                   value={stock}
                   onChange={(e) => setStock(Number(e.target.value))}
-                  required
                   className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
                 />
               </div>
 
-              <button type="button" onClick={handleSubmit} className="bg-[#0b5d8a] text-white p-3 rounded-lg text-base font-bold cursor-pointer hover:bg-[#084c70] transition-colors mt-4 shadow-sm">Simpan ke Database</button>
-            </div>
-            {message && <p className="mt-4 text-center font-bold">{message}</p>}
+              <button type="submit" className="bg-[#0b5d8a] text-white p-3 rounded-lg text-base font-bold cursor-pointer hover:bg-[#084c70] transition-colors mt-4 shadow-sm w-full">Simpan ke Database</button>
+            </form>
           </div>
+
+          {/* Kolom Kanan: List Stok */}
+          <div className="bg-white rounded-2xl p-6 flex flex-col h-full flex-4 shadow-sm">
+            <div className="mb-4">
+              <input 
+                type="text" 
+                placeholder="Cari Produk" 
+                value={searchProduct}
+                onChange={(e) => setSearchProduct(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-3xl text-sm outline-none focus:border-[#0b5d8a] transition-colors shadow-inner"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto mb-6">
+              <table className="w-full border-separate border-spacing-y-2">
+                <thead>
+                  <tr>
+                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-left">Nama</th>
+                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-center">Stok</th>
+                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-right">Harga</th>
+                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-center w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((p) => (
+                    <tr key={p.id} className="group transition-colors duration-100">
+                      <td 
+                        className="px-4 py-3.5 text-lg bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                        onClick={() => handleEditProductClick(p)}
+                        title="Klik untuk mengubah nama"
+                      >
+                         {p.name}
+                      </td>
+                      <td 
+                        className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                        onClick={() => handleEditProductClick(p)}
+                        title="Klik untuk mengubah stok"
+                      >
+                         {p.stock}
+                      </td>
+                      <td 
+                        className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                        onClick={() => handleEditProductClick(p)}
+                        title="Klik untuk mengubah harga"
+                      >
+                         {(p.price).toLocaleString('id-ID')}
+                      </td>
+                      <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center last:rounded-r-xl transition-colors">
+                        <button onClick={() => setDbProductToDelete(p)} className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors">
+                          <IconTrash />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredProducts.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="text-center text-gray-500 py-4 bg-transparent border-none">Tidak ada produk</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
         )}
 
         {mode === "laporan" && (
            <div className="bg-white rounded-2xl p-6 flex-1 overflow-y-auto shadow-sm">
-             <h1 className="text-2xl font-bold text-center mb-6 mt-4">Laporan Penjualan Terakhir</h1>
-             <div className="p-6 bg-[#f6f6f6] rounded-2xl mb-6 text-center max-w-[500px] mx-auto shadow-sm">
-                 <h3 className="text-sm font-medium mb-2 text-gray-500">Total Omzet (50 Transaksi Terakhir):</h3>
-                 <h2 className="text-3xl font-bold text-[#0b5d8a]">Rp {reports.reduce((acc, curr) => acc + curr.total_price, 0).toLocaleString('id-ID')}</h2>
+             <h1 className="text-2xl font-bold text-center mb-6 mt-4">Laporan Penjualan</h1>
+             
+             <div className="flex gap-4 max-w-[500px] mx-auto mb-6">
+                <select 
+                  value={filterMonth} 
+                  onChange={(e) => setFilterMonth(e.target.value)}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-base font-medium outline-none focus:border-[#0b5d8a] cursor-pointer shadow-sm transition-colors"
+                >
+                  <option value="">Semua Bulan</option>
+                  <option value="01">Januari</option>
+                  <option value="02">Februari</option>
+                  <option value="03">Maret</option>
+                  <option value="04">April</option>
+                  <option value="05">Mei</option>
+                  <option value="06">Juni</option>
+                  <option value="07">Juli</option>
+                  <option value="08">Agustus</option>
+                  <option value="09">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+
+                <select 
+                  value={filterYear} 
+                  onChange={(e) => setFilterYear(e.target.value)}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-base font-medium outline-none focus:border-[#0b5d8a] cursor-pointer shadow-sm transition-colors"
+                >
+                  <option value="">Semua Tahun</option>
+                  <option value="2024">2024</option>
+                  <option value="2025">2025</option>
+                  <option value="2026">2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                </select>
+             </div>
+
+             <div className="flex gap-4 max-w-150 mx-auto mb-6">
+                 <div className="p-6 bg-[#f6f6f6] rounded-2xl flex-1 text-center shadow-sm transition-all">
+                     <h3 className="text-sm font-bold mb-2 text-gray-500">Pendapatan 7 Hari Terakhir</h3>
+                     <h2 className="text-3xl font-extrabold text-[#0b5d8a]">Rp {weeklyRevenue.toLocaleString('id-ID')}</h2>
+                 </div>
+                 <div className="p-6 bg-[#0b5d8a] text-white rounded-2xl flex-1 text-center shadow-sm transition-all">
+                     <h3 className="text-sm font-bold mb-2 text-white/80">Pendapatan Sesuai Filter</h3>
+                     <h2 className="text-3xl font-extrabold">Rp {reports.reduce((acc, curr) => acc + curr.total_price, 0).toLocaleString('id-ID')}</h2>
+                 </div>
              </div>
  
              <table className="w-full border-collapse mt-5">
@@ -449,7 +621,8 @@ function App() {
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
                <IconTrash />
             </div>
-            <h2 className="text-xl font-bold mb-6">Hapus Barang?</h2>
+            <h2 className="text-xl font-bold mb-2">Hapus Barang?</h2>
+            <p className="text-center text-gray-600 mb-6">Apakah Anda yakin ingin menghapus <strong>{itemToDelete.name}</strong> dari keranjang?</p>
             <div className="flex gap-4 w-full">
               <button 
                 className="flex-1 p-3 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition-colors cursor-pointer"
@@ -517,6 +690,117 @@ function App() {
             <button 
               className="w-full p-4 bg-[#0b5d8a] text-white rounded-xl font-bold text-lg hover:bg-[#084c70] transition-colors cursor-pointer"
               onClick={() => setShowSuccessModal(false)}
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EDIT PRODUK DATABSE */}
+      {productToEdit && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+            <h2 className="text-xl font-bold mb-6 text-center">Edit Data Produk</h2>
+            <form onSubmit={saveProductEdits} className="w-full flex flex-col gap-4">
+               <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Nama Produk Baru</label>
+                  <input
+                    type="text"
+                    value={editProductName}
+                    onChange={(e) => setEditProductName(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
+                    autoFocus
+                  />
+               </div>
+               <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Stok Baru</label>
+                  <input
+                    type="number"
+                    value={editProductStock}
+                    onChange={(e) => setEditProductStock(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
+                    autoFocus
+                    min={0}
+                  />
+               </div>
+               <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Harga Baru (Rp)</label>
+                  <input
+                    type="number"
+                    value={editProductPrice}
+                    onChange={(e) => setEditProductPrice(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
+                    min={0}
+                  />
+               </div>
+               <div className="flex gap-4 w-full mt-4">
+                 <button 
+                   type="button"
+                   className="flex-1 p-3 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition-colors cursor-pointer"
+                   onClick={() => setProductToEdit(null)}
+                 >
+                   Batal
+                 </button>
+                 <button 
+                   type="submit"
+                   className="flex-1 p-3 bg-[#0b5d8a] text-white rounded-xl font-bold hover:bg-[#084c70] transition-colors cursor-pointer"
+                 >
+                   Simpan Perubahan
+                 </button>
+               </div>
+             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL KONFIRMASI HAPUS PRODUK DARI DATABASE */}
+      {dbProductToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
+               <IconTrash />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Hapus Produk Permanen?</h2>
+            <p className="text-center text-gray-600 mb-6">Apakah Anda yakin ingin menghapus <strong>{dbProductToDelete.name}</strong> dari database?</p>
+            <div className="flex gap-4 w-full">
+              <button 
+                className="flex-1 p-3 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition-colors cursor-pointer"
+                onClick={() => setDbProductToDelete(null)}
+              >
+                Batal
+              </button>
+              <button 
+                className="flex-1 p-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors cursor-pointer"
+                onClick={confirmDeleteDbProduct}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL STATUS TAMBAH PRODUK */}
+      {addStatusModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[60]">
+          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+            {addStatusModal.type === 'success' ? (
+              <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
+                 <IconCheck />
+              </div>
+            ) : (
+              <div className="w-24 h-24 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6">
+                 <IconX />
+              </div>
+            )}
+            <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">
+              {addStatusModal.type === 'success' ? 'Berhasil Disimpan!' : 'Gagal Menyimpan!'}
+            </h2>
+            <p className="text-center text-gray-600 mb-8 font-medium">{addStatusModal.message}</p>
+            <button 
+              className={`w-full p-4 text-white rounded-xl font-bold text-lg transition-colors cursor-pointer ${addStatusModal.type === 'success' ? 'bg-[#0b5d8a] hover:bg-[#084c70]' : 'bg-red-500 hover:bg-red-600'}`}
+              onClick={() => setAddStatusModal(null)}
             >
               Tutup
             </button>
