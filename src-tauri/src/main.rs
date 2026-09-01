@@ -230,12 +230,23 @@ fn get_all_products(state: State<'_, DbState>) -> Result<Vec<Product>, String> {
 }
 
 #[tauri::command]
-fn update_product(state: State<'_, DbState>, barcode: String, name: String, price: i64, stock: i32) -> Result<(), String> {
+fn update_product(
+    state: State<'_, DbState>,
+    barcode: String,
+    name: String,
+    category: Option<String>,
+    cost_price: i64,
+    price: i64,
+    stock: i32,
+    min_stock: Option<i32>,
+) -> Result<(), String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+    let cat = category.unwrap_or_else(|| "Umum".to_string());
+    let min_stk = min_stock.unwrap_or(5);
 
     conn.execute(
-        "UPDATE products SET name = ?1, price = ?2, stock = ?3 WHERE barcode = ?4",
-        rusqlite::params![name, price, stock, barcode],
+        "UPDATE products SET name = ?1, category = ?2, cost_price = ?3, price = ?4, stock = ?5, min_stock = ?6 WHERE barcode = ?7",
+        params![name, cat, cost_price, price, stock, min_stk, barcode],
     )
     .map_err(|e| e.to_string())?;
 
@@ -248,7 +259,7 @@ fn delete_product(state: State<'_, DbState>, barcode: String) -> Result<(), Stri
 
     conn.execute(
         "DELETE FROM products WHERE barcode = ?1",
-        rusqlite::params![barcode],
+        params![barcode],
     )
     .map_err(|e| e.to_string())?;
 
