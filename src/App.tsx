@@ -62,11 +62,13 @@ function App() {
   const [filterMonth, setFilterMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
   const [filterYear, setFilterYear] = useState(currentDate.getFullYear().toString());
   const [weeklyRevenue, setWeeklyRevenue] = useState<number>(0);
+  const [todayRevenue, setTodayRevenue] = useState<number>(0);
 
   useEffect(() => {
     if (mode === "laporan") {
       fetchReports();
       fetchWeeklyRevenue();
+      fetchTodayRevenue();
     } else if (mode === "kasir" || mode === "input") {
       fetchAllProducts();
     }
@@ -99,6 +101,15 @@ function App() {
     }
   };
 
+  const fetchTodayRevenue = async () => {
+    try {
+      const data: number = await invoke("get_today_revenue");
+      setTodayRevenue(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -109,7 +120,7 @@ function App() {
         stock: Number(stock),
       });
 
-      setAddStatusModal({ type: 'success', message: `Barang ${name} berhasil disimpan ke database` });
+      setAddStatusModal({ type: 'success', message: `${name} berhasil ditambahkan` });
       setBarcode("");
       setName("");
       setPrice("");
@@ -272,7 +283,7 @@ function App() {
       {/* SIDEBAR */}
       <div className="w-60 flex flex-col">
         <div className="mb-6">
-          <h1 className="text-white text-2xl font-bold tracking-wide">POS SYSTEM</h1>
+          <h1 className="text-white text-2xl font-bold tracking-wide">Cahaya Media</h1>
         </div>
         <div className="bg-white text-lg rounded-2xl p-3 flex-1 flex flex-col gap-2 shadow-sm">
           <div className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer font-semibold transition-all duration-200 ${mode === 'kasir' ? 'bg-[#0b5d8a] text-white' : 'text-[#1a1a1a] hover:bg-gray-100'}`} onClick={() => setMode('kasir')}>
@@ -315,27 +326,27 @@ function App() {
                 <table className="w-full border-separate border-spacing-y-2">
                   <thead>
                     <tr>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-left">Nama</th>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-center">Jumlah</th>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-right">Harga Satuan</th>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-right">Harga Total</th>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-center w-12"></th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Jumlah</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga Satuan</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga Total</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-center w-12"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {cart.map((item, i) => (
                       <tr key={i} className="group">
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] first:rounded-l-xl group-hover:bg-[#eee] transition-colors">{item.name}</td>
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] first:rounded-l-xl group-hover:bg-[#eee] transition-colors">{item.name}</td>
                         <td 
-                          className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors cursor-pointer hover:text-[#0b5d8a] hover:underline"
+                          className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors cursor-pointer hover:text-[#0b5d8a] hover:underline"
                           onClick={() => handleEditClick(item)}
                           title="Klik untuk mengubah kuantitas"
                         >
                           {item.quantity}
                         </td>
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-right group-hover:bg-[#eee] transition-colors">{(item.price).toLocaleString('id-ID')}</td>
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-right group-hover:bg-[#eee] transition-colors">{(item.price * item.quantity).toLocaleString('id-ID')}</td>
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center last:rounded-r-xl group-hover:bg-[#eee] transition-colors">
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-right group-hover:bg-[#eee] transition-colors">{(item.price).toLocaleString('id-ID')}</td>
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-right group-hover:bg-[#eee] transition-colors">{(item.price * item.quantity).toLocaleString('id-ID')}</td>
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center last:rounded-r-xl group-hover:bg-[#eee] transition-colors">
                           <button onClick={() => setItemToDelete(item)} className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors">
                             <IconTrash />
                           </button>
@@ -353,13 +364,13 @@ function App() {
 
               <div className="bg-white pt-4 border-t-2 border-[#f0f0f0]">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="m-0 text-[28px] font-bold">Total</h2>
-                  <h2 className="m-0 text-[28px] font-bold">Rp {totalHarga.toLocaleString('id-ID')}</h2>
+                  <h2 className="m-0 text-2xl font-bold">Total</h2>
+                  <h2 className="m-0 text-2xl font-bold">Rp {totalHarga.toLocaleString('id-ID')}</h2>
                 </div>
-                <div className="text-lg flex justify-between items-center mb-3 font-medium">
+                <div className="text-base flex justify-between items-center mb-3 font-medium">
                   <span>Bayar</span>
                   <div>
-                    <span className="text-lg">Rp </span>
+                    <span className="text-base">Rp </span>
                     <input 
                       type="number" 
                       value={payment} 
@@ -369,7 +380,7 @@ function App() {
                     />
                   </div>
                 </div>
-                <div className="text-lg flex justify-between items-center mb-3 font-medium">
+                <div className="text-base flex justify-between items-center mb-3 font-medium text-green-900">
                   <span>Kembalian</span>
                   <span>Rp {kembalian.toLocaleString('id-ID')}</span>
                 </div>
@@ -397,17 +408,17 @@ function App() {
                 <table className="w-full border-separate border-spacing-y-2">
                   <thead>
                     <tr>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-left">Nama</th>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-center">Stok</th>
-                      <th className="text-lg text-[#111] font-bold px-4 py-2 text-right">Harga</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Stok</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredProducts.map((p) => (
                       <tr key={p.id} onClick={() => addToCart(p)} className="cursor-pointer group active:scale-[0.99] transition-transform duration-100">
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] first:rounded-l-xl group-hover:bg-[#eee] transition-colors">{p.name}</td>
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors">{p.stock}</td>
-                        <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-right last:rounded-r-xl group-hover:bg-[#eee] transition-colors">{(p.price).toLocaleString('id-ID')}</td>
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] first:rounded-l-xl group-hover:bg-[#eee] transition-colors">{p.name}</td>
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors">{p.stock}</td>
+                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-right last:rounded-r-xl group-hover:bg-[#eee] transition-colors">{(p.price).toLocaleString('id-ID')}</td>
                       </tr>
                     ))}
                     {filteredProducts.length === 0 && (
@@ -429,7 +440,7 @@ function App() {
               <h1 className="text-2xl font-bold text-center mb-6 mt-2">Input Barang Baru</h1>
               <form onSubmit={handleSubmit} className="w-full mx-auto flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="font-semibold text-lg">Barcode Produk:</label>
+                  <label className="font-semibold text-base">Barcode Produk:</label>
                   <input
                     type="text"
                     value={barcode}
@@ -442,7 +453,7 @@ function App() {
                 </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-lg">Nama Barang:</label>
+                <label className="font-semibold text-base">Nama Barang:</label>
                 <input
                   type="text"
                   value={name}
@@ -454,7 +465,7 @@ function App() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-lg">Harga Jual (Rp):</label>
+                <label className="font-semibold text-base">Harga Jual (Rp):</label>
                 <input
                   type="number"
                   value={price}
@@ -465,7 +476,7 @@ function App() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="font-semibold text-lg">Stok Awal:</label>
+                <label className="font-semibold text-base">Stok Awal:</label>
                 <input
                   type="number"
                   value={stock}
@@ -493,37 +504,37 @@ function App() {
               <table className="w-full border-separate border-spacing-y-2">
                 <thead>
                   <tr>
-                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-left">Nama</th>
-                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-center">Stok</th>
-                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-right">Harga</th>
-                    <th className="text-lg text-[#111] font-bold px-4 py-2 text-center w-12"></th>
+                    <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama</th>
+                    <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Stok</th>
+                    <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga</th>
+                    <th className="text-base text-[#111] font-bold px-4 py-2 text-center w-12"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredProducts.map((p) => (
                     <tr key={p.id} className="group transition-colors duration-100">
                       <td 
-                        className="px-4 py-3.5 text-lg bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                        className="px-4 py-3.5 text-sm bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
                         onClick={() => handleEditProductClick(p)}
                         title="Klik untuk mengubah nama"
                       >
                          {p.name}
                       </td>
                       <td 
-                        className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                        className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
                         onClick={() => handleEditProductClick(p)}
                         title="Klik untuk mengubah stok"
                       >
                          {p.stock}
                       </td>
                       <td 
-                        className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                        className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
                         onClick={() => handleEditProductClick(p)}
                         title="Klik untuk mengubah harga"
                       >
                          {(p.price).toLocaleString('id-ID')}
                       </td>
-                      <td className="px-4 py-3.5 text-lg bg-[#f6f6f6] text-center last:rounded-r-xl transition-colors">
+                      <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center last:rounded-r-xl transition-colors">
                         <button onClick={() => setDbProductToDelete(p)} className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors">
                           <IconTrash />
                         </button>
@@ -581,7 +592,11 @@ function App() {
                 </select>
              </div>
 
-             <div className="flex gap-4 max-w-150 mx-auto mb-6">
+             <div className="flex gap-4 max-w-[800px] mx-auto mb-6">
+                 <div className="p-6 bg-[#f6f6f6] rounded-2xl flex-1 text-center shadow-sm transition-all">
+                     <h3 className="text-sm font-bold mb-2 text-gray-500">Pendapatan Hari Ini</h3>
+                     <h2 className="text-3xl font-extrabold text-orange-600">Rp {todayRevenue.toLocaleString('id-ID')}</h2>
+                 </div>
                  <div className="p-6 bg-[#f6f6f6] rounded-2xl flex-1 text-center shadow-sm transition-all">
                      <h3 className="text-sm font-bold mb-2 text-gray-500">Pendapatan 7 Hari Terakhir</h3>
                      <h2 className="text-3xl font-extrabold text-[#0b5d8a]">Rp {weeklyRevenue.toLocaleString('id-ID')}</h2>

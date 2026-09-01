@@ -2,33 +2,74 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde::{Serialize, Deserialize};
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, params};
 use std::sync::Mutex;
 use tauri::{Manager, State};
+use uuid::Uuid;
 
 struct DbState(Mutex<Connection>);
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Product {
-    id: i32,
-    barcode: String,
-    name: String,
-    price: i64,
-    stock: i32,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Product {
+    pub id: String,
+    pub barcode: String,
+    pub name: String,
+    pub category: String,
+    pub cost_price: i64,
+    pub price: i64,
+    pub stock: i32,
+    pub min_stock: i32,
 }
 
-#[derive(Deserialize)]
-struct SaleItem {
-    barcode: String,
-    quantity: i32,
-    price: i64,
+#[derive(Deserialize, Debug)]
+pub struct SaleItemInput {
+    pub barcode: String,
+    pub name: String,
+    pub category: Option<String>,
+    pub quantity: i32,
+    pub cost_price: i64,
+    pub price: i64,
 }
 
-#[derive(Serialize)]
-struct SaleReport {
-    id: i32,
-    total_price: i64,
-    created_at: String,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SaleItemDetail {
+    pub id: String,
+    pub sale_id: String,
+    pub barcode: String,
+    pub product_name: String,
+    pub category: String,
+    pub quantity: i32,
+    pub cost_price: i64,
+    pub price: i64,
+    pub subtotal: i64,
+    pub profit: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SaleReport {
+    pub id: String,
+    pub total_price: i64,
+    pub total_cost: i64,
+    pub total_profit: i64,
+    pub amount_paid: i64,
+    pub change_amount: i64,
+    pub payment_method: String,
+    pub created_at: String,
+    pub item_count: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SaleDetailResponse {
+    pub sale: SaleReport,
+    pub items: Vec<SaleItemDetail>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AnalyticsResponse {
+    pub today_revenue: i64,
+    pub today_profit: i64,
+    pub weekly_revenue: i64,
+    pub weekly_profit: i64,
 }
 
 fn init_db(db_path: std::path::PathBuf) -> Result<Connection> {
@@ -222,6 +263,19 @@ fn get_weekly_revenue(state: State<'_, DbState>) -> Result<i64, String> {
     Ok(sum_total)
 }
 
+#[tauri::command]
+fn get_today_revenue(state: State<'_, DbState>) -> Result<i64, String> {
+    let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+    
+    let mut stmt = conn
+        .prepare("SELECT COALESCE(SUM(total_price), 0) FROM sales WHERE date(created_at, 'localtime') = date('now', 'localtime')")
+        .map_err(|e| e.to_string())?;
+
+    let sum_total: i64 = stmt.query_row([], |row| row.get(0)).unwrap_or(0);
+
+    Ok(sum_total)
+}
+
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -250,7 +304,8 @@ fn main() {
             get_all_products,
             update_product,
             delete_product,
-            get_weekly_revenue
+            get_weekly_revenue,
+            get_today_revenue
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
