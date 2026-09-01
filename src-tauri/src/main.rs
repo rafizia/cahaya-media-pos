@@ -181,7 +181,7 @@ fn get_product_by_barcode(state: State<'_, DbState>, barcode: String) -> Result<
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     
     let mut stmt = conn
-        .prepare("SELECT id, barcode, name, price, stock FROM products WHERE barcode = ?")
+        .prepare("SELECT id, barcode, name, category, cost_price, price, stock, min_stock FROM products WHERE barcode = ?")
         .map_err(|e| e.to_string())?;
 
     let product = stmt.query_row([barcode], |row| {
@@ -189,8 +189,11 @@ fn get_product_by_barcode(state: State<'_, DbState>, barcode: String) -> Result<
             id: row.get(0)?,
             barcode: row.get(1)?,
             name: row.get(2)?,
-            price: row.get(3)?,
-            stock: row.get(4)?,
+            category: row.get(3)?,
+            cost_price: row.get(4)?,
+            price: row.get(5)?,
+            stock: row.get(6)?,
+            min_stock: row.get(7)?,
         })
     }).map_err(|_| "Produk tidak ditemukan".to_string());
 
@@ -202,7 +205,7 @@ fn get_all_products(state: State<'_, DbState>) -> Result<Vec<Product>, String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     
     let mut stmt = conn
-        .prepare("SELECT id, barcode, name, price, stock FROM products")
+        .prepare("SELECT id, barcode, name, category, cost_price, price, stock, min_stock FROM products ORDER BY name ASC")
         .map_err(|e| e.to_string())?;
 
     let rows = stmt.query_map([], |row| {
@@ -210,8 +213,11 @@ fn get_all_products(state: State<'_, DbState>) -> Result<Vec<Product>, String> {
             id: row.get(0)?,
             barcode: row.get(1)?,
             name: row.get(2)?,
-            price: row.get(3)?,
-            stock: row.get(4)?,
+            category: row.get(3)?,
+            cost_price: row.get(4)?,
+            price: row.get(5)?,
+            stock: row.get(6)?,
+            min_stock: row.get(7)?,
         })
     }).map_err(|e| e.to_string())?;
 
