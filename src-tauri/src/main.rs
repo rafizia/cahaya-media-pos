@@ -267,25 +267,58 @@ fn delete_product(state: State<'_, DbState>, barcode: String) -> Result<(), Stri
 }
 
 #[tauri::command]
-fn process_transaction(state: State<'_, DbState>, items: Vec<SaleItem>, total: i64) -> Result<(), String> {
+fn process_transaction(
+    state: State<'_, DbState>,
+    items: Vec<SaleItemInput>,
+    total: i64,
+    amount_paid: i64,
+    change_amount: i64,
+    payment_method: Option<String>,
+) -> Result<String, String> {
+    if items.is_empty() {
+        return Err("Keranjang belanja kosong".to_string());
+    }
+
     let mut conn_guard = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     let tx = conn_guard.transaction().map_err(|e| e.to_string())?;
 
+    let sale_id = Uuid::new_v4().to_string();
+    let method = payment_method.unwrap_or_else(|| "CASH".to_string());
+
+    let mut total_cost: i64 = 0;
+    for item in &items {
+        total_cost += item.cost_price * (item.quantity as i64);
+    }
+    let total_profit = total - total_cost;
+
     tx.execute(
-        "INSERT INTO sales (total_price) VALUES (?1)",
-        [&total],
+        "INSERT INTO sales (id, total_price, total_cost, total_profit, amount_paid, change_amount, payment_method) 
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![sale_id, total, total_cost, total_profit, amount_paid, change_amount, method],
     ).map_err(|e| e.to_string())?;
 
     for item in items {
+        let item_id = Uuid::new_v4().to_string();
+        let cat = item.category.unwrap_or_else(|| "Umum".to_string());
+        let subtotal = item.price * (item.quantity as i64);
+        let subtotal_cost = item.cost_price * (item.quantity as i64);
+        let profit = subtotal - subtotal_cost;
+
+        tx.execute(
+            "INSERT INTO sale_items (id, sale_id, barcode, product_name, category, quantity, cost_price, price, subtotal, profit)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![item_id, sale_id, item.barcode, item.name, cat, item.quantity, item.cost_price, item.price, subtotal, profit],
+        ).map_err(|e| format!("Gagal menyimpan rincian item: {}", e))?;
+
         tx.execute(
             "UPDATE products SET stock = stock - ?1 WHERE barcode = ?2",
-            rusqlite::params![item.quantity, item.barcode],
+            params![item.quantity, item.barcode],
         ).map_err(|e| format!("Gagal potong stok untuk {}: {}", item.barcode, e))?;
     }
 
     tx.commit().map_err(|e| e.to_string())?;
 
-    Ok(())
+    Ok(sale_id)
 }
 
 #[tauri::command]
