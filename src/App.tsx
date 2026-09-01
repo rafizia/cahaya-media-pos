@@ -510,22 +510,55 @@ function App() {
                 <table className="w-full border-separate border-spacing-y-2">
                   <thead>
                     <tr>
-                      <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama</th>
+                      <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama & Kategori</th>
                       <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Stok</th>
                       <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProducts.map((p) => (
-                      <tr key={p.id} onClick={() => addToCart(p)} className="cursor-pointer group active:scale-[0.99] transition-transform duration-100">
-                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] first:rounded-l-xl group-hover:bg-[#eee] transition-colors">{p.name}</td>
-                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors">{p.stock}</td>
-                        <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-right last:rounded-r-xl group-hover:bg-[#eee] transition-colors">{(p.price).toLocaleString('id-ID')}</td>
-                      </tr>
-                    ))}
+                    {filteredProducts.map((p) => {
+                      const isLowStock = p.stock <= (p.min_stock ?? 5);
+                      const isOutOfStock = p.stock <= 0;
+                      return (
+                        <tr 
+                          key={p.id} 
+                          onClick={() => {
+                            if (!isOutOfStock) addToCart(p);
+                            else {
+                              setMessage(`Stok ${p.name} habis!`);
+                              setTimeout(() => setMessage(""), 3000);
+                            }
+                          }} 
+                          className={`cursor-pointer group active:scale-[0.99] transition-transform duration-100 ${isOutOfStock ? 'opacity-50' : ''}`}
+                        >
+                          <td className="px-4 py-3 text-sm bg-[#f6f6f6] first:rounded-l-xl group-hover:bg-[#eee] transition-colors">
+                            <div className="font-semibold text-gray-900">{p.name}</div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[10px] bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-medium">{p.category || 'Umum'}</span>
+                              <span className="text-[10px] text-gray-400 font-mono">{p.barcode}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors">
+                            <div className="font-bold text-sm">{p.stock}</div>
+                            {isOutOfStock ? (
+                              <span className="text-[10px] bg-red-600 text-white font-bold px-1.5 py-0.5 rounded-full inline-block mt-0.5">
+                                Habis
+                              </span>
+                            ) : isLowStock ? (
+                              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full inline-block mt-0.5">
+                                Menipis
+                              </span>
+                            ) : null}
+                          </td>
+                          <td className="px-4 py-3 text-sm bg-[#f6f6f6] text-right last:rounded-r-xl group-hover:bg-[#eee] transition-colors font-bold text-gray-900">
+                            Rp {(p.price).toLocaleString('id-ID')}
+                          </td>
+                        </tr>
+                      );
+                    })}
                     {filteredProducts.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="text-center text-gray-500 py-4 bg-transparent border-none">Tidak ada produk</td>
+                        <td colSpan={3} className="text-center text-gray-500 py-4 bg-transparent border-none">Tidak ada produk ditemukan</td>
                       </tr>
                     )}
                   </tbody>
