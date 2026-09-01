@@ -5,30 +5,69 @@ import "./App.css";
 interface CartItem {
   barcode: string;
   name: string;
+  category?: string;
+  cost_price: number;
   price: number;
   quantity: number;
 }
 
 interface SaleReport {
-  id: number;
+  id: string;
   total_price: number;
+  total_cost: number;
+  total_profit: number;
+  amount_paid: number;
+  change_amount: number;
+  payment_method: string;
   created_at: string;
+  item_count: number;
+}
+
+interface SaleItemDetail {
+  id: string;
+  sale_id: string;
+  barcode: string;
+  product_name: string;
+  category: string;
+  quantity: number;
+  cost_price: number;
+  price: number;
+  subtotal: number;
+  profit: number;
+}
+
+interface SaleDetailResponse {
+  sale: SaleReport;
+  items: SaleItemDetail[];
+}
+
+interface AnalyticsResponse {
+  today_revenue: number;
+  today_profit: number;
+  weekly_revenue: number;
+  weekly_profit: number;
 }
 
 interface Product {
-  id: number;
+  id: string;
   barcode: string;
   name: string;
+  category: string;
+  cost_price: number;
   price: number;
   stock: number;
+  min_stock: number;
 }
 
 function App() {
   // Input Product State
   const [name, setName] = useState("");
   const [barcode, setBarcode] = useState("");
+  const [category, setCategory] = useState("Umum");
+  const [costPrice, setCostPrice] = useState<number | "">("");
   const [price, setPrice] = useState<number | "">("");
   const [stock, setStock] = useState<number | "">("");
+  const [minStock, setMinStock] = useState<number | "">(5);
   const [message, setMessage] = useState("");
 
   const [mode, setMode] = useState<"kasir" | "input" | "laporan">("kasir");
@@ -116,15 +155,21 @@ function App() {
       await invoke("add_product", {
         barcode,
         name,
+        category: category || "Umum",
+        cost_price: Number(costPrice) || 0,
         price: Number(price),
-        stock: Number(stock),
+        stock: Number(stock) || 0,
+        min_stock: Number(minStock) || 5,
       });
 
       setAddStatusModal({ type: 'success', message: `${name} berhasil ditambahkan` });
       setBarcode("");
       setName("");
+      setCategory("Umum");
+      setCostPrice("");
       setPrice("");
       setStock("");
+      setMinStock(5);
       if (mode === 'input' || mode === 'kasir') {
          fetchAllProducts();
       }
@@ -452,41 +497,100 @@ function App() {
                   />
                 </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="font-semibold text-base">Nama Barang:</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Buku Tulis AA"
-                  required
-                  className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
-                />
-              </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-semibold text-base">Nama Barang:</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Contoh: Buku Tulis Sinar Dunia 38 Lembar"
+                    required
+                    className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="font-semibold text-base">Harga Jual (Rp):</label>
-                <input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(Number(e.target.value))}
-                  required
-                  className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
-                />
-              </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-semibold text-base">Kategori:</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      placeholder="Contoh: Alat Tulis"
+                      className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {["Umum", "Alat Tulis", "Kertas", "Fotocopy & Print", "Jasa", "Aksesoris"].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategory(cat)}
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-colors cursor-pointer ${category === cat ? 'bg-[#0b5d8a] text-white border-[#0b5d8a]' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="font-semibold text-base">Stok Awal:</label>
-                <input
-                  type="number"
-                  value={stock}
-                  onChange={(e) => setStock(Number(e.target.value))}
-                  className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
-                />
-              </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="font-semibold text-base">Harga Modal / Beli (Rp):</label>
+                    <input
+                      type="number"
+                      value={costPrice}
+                      onChange={(e) => setCostPrice(e.target.value ? Number(e.target.value) : "")}
+                      placeholder="0"
+                      min={0}
+                      className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
+                    />
+                  </div>
 
-              <button type="submit" className="bg-[#0b5d8a] text-white p-3 rounded-lg text-base font-bold cursor-pointer hover:bg-[#084c70] transition-colors mt-4 shadow-sm w-full">Simpan ke Database</button>
-            </form>
+                  <div className="flex flex-col gap-2">
+                    <label className="font-semibold text-base">Harga Jual (Rp):</label>
+                    <input
+                      type="number"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : "")}
+                      placeholder="Contoh: 5000"
+                      required
+                      min={0}
+                      className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="font-semibold text-base">Stok Awal:</label>
+                    <input
+                      type="number"
+                      value={stock}
+                      onChange={(e) => setStock(e.target.value ? Number(e.target.value) : "")}
+                      placeholder="0"
+                      min={0}
+                      className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="font-semibold text-base">Batas Min. Stok (Peringatan):</label>
+                    <input
+                      type="number"
+                      value={minStock}
+                      onChange={(e) => setMinStock(e.target.value ? Number(e.target.value) : "")}
+                      placeholder="5"
+                      min={0}
+                      className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="bg-[#0b5d8a] text-white p-3.5 rounded-lg text-base font-bold cursor-pointer hover:bg-[#084c70] transition-colors mt-2 shadow-sm w-full">
+                  Simpan ke Database
+                </button>
+              </form>
           </div>
 
           {/* Kolom Kanan: List Stok */}
