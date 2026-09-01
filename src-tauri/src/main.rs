@@ -379,14 +379,16 @@ fn get_sale_details(state: State<'_, DbState>, sale_id: String) -> Result<SaleDe
 fn get_sales_report(state: State<'_, DbState>, month: String, year: String) -> Result<Vec<SaleReport>, String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     
-    let mut query = "SELECT id, total_price, datetime(created_at, 'localtime') FROM sales".to_string();
+    let mut query = "SELECT s.id, s.total_price, s.total_cost, s.total_profit, s.amount_paid, s.change_amount, s.payment_method, datetime(s.created_at, 'localtime'), COALESCE(COUNT(si.id), 0)
+                     FROM sales s
+                     LEFT JOIN sale_items si ON s.id = si.sale_id".to_string();
     let mut conditions = Vec::new();
 
     if !year.is_empty() {
-        conditions.push(format!("strftime('%Y', datetime(created_at, 'localtime')) = '{}'", year));
+        conditions.push(format!("strftime('%Y', datetime(s.created_at, 'localtime')) = '{}'", year));
     }
     if !month.is_empty() {
-        conditions.push(format!("strftime('%m', datetime(created_at, 'localtime')) = '{}'", month));
+        conditions.push(format!("strftime('%m', datetime(s.created_at, 'localtime')) = '{}'", month));
     }
     
     if !conditions.is_empty() {
@@ -394,7 +396,7 @@ fn get_sales_report(state: State<'_, DbState>, month: String, year: String) -> R
         query.push_str(&conditions.join(" AND "));
     }
     
-    query.push_str(" ORDER BY id DESC LIMIT 2000");
+    query.push_str(" GROUP BY s.id ORDER BY s.created_at DESC LIMIT 2000");
 
     let mut stmt = conn
         .prepare(&query)
@@ -404,7 +406,13 @@ fn get_sales_report(state: State<'_, DbState>, month: String, year: String) -> R
         Ok(SaleReport {
             id: row.get(0)?,
             total_price: row.get(1)?,
-            created_at: row.get(2)?,
+            total_cost: row.get(2)?,
+            total_profit: row.get(3)?,
+            amount_paid: row.get(4)?,
+            change_amount: row.get(5)?,
+            payment_method: row.get(6)?,
+            created_at: row.get(7)?,
+            item_count: row.get(8)?,
         })
     }).map_err(|e| e.to_string())?;
 
@@ -417,29 +425,33 @@ fn get_sales_report(state: State<'_, DbState>, month: String, year: String) -> R
 }
 
 #[tauri::command]
-fn get_weekly_revenue(state: State<'_, DbState>) -> Result<i64, String> {
+fn get_sales_analytics(state: State<'_, DbState>) -> Result<AnalyticsResponse, String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
-    
-    let mut stmt = conn
-        .prepare("SELECT COALESCE(SUM(total_price), 0) FROM sales WHERE datetime(created_at, 'localtime') >= datetime('now', '-7 days', 'localtime')")
-        .map_err(|e| e.to_string())?;
 
-    let sum_total: i64 = stmt.query_row([], |row| row.get(0)).unwrap_or(0);
+    let mut today_stmt = conn.prepare(
+        "SELECT COALESCE(SUM(total_price), 0), COALESCE(SUM(total_profit), 0)
+         FROM sales WHERE date(created_at, 'localtime') = date('now', 'localtime')"
+    ).map_err(|e| e.to_string())?;
 
-    Ok(sum_total)
-}
+    let (today_revenue, today_profit): (i64, i64) = today_stmt.query_row([], |row| {
+        Ok((row.get(0)?, row.get(1)?))
+    }).unwrap_or((0, 0));
 
-#[tauri::command]
-fn get_today_revenue(state: State<'_, DbState>) -> Result<i64, String> {
-    let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
-    
-    let mut stmt = conn
-        .prepare("SELECT COALESCE(SUM(total_price), 0) FROM sales WHERE date(created_at, 'localtime') = date('now', 'localtime')")
-        .map_err(|e| e.to_string())?;
+    let mut weekly_stmt = conn.prepare(
+        "SELECT COALESCE(SUM(total_price), 0), COALESCE(SUM(total_profit), 0)
+         FROM sales WHERE datetime(created_at, 'localtime') >= datetime('now', '-7 days', 'localtime')"
+    ).map_err(|e| e.to_string())?;
 
-    let sum_total: i64 = stmt.query_row([], |row| row.get(0)).unwrap_or(0);
+    let (weekly_revenue, weekly_profit): (i64, i64) = weekly_stmt.query_row([], |row| {
+        Ok((row.get(0)?, row.get(1)?))
+    }).unwrap_or((0, 0));
 
-    Ok(sum_total)
+    Ok(AnalyticsResponse {
+        today_revenue,
+        today_profit,
+        weekly_revenue,
+        weekly_profit,
+    })
 }
 
 fn main() {
@@ -467,11 +479,11 @@ fn main() {
             add_product,
             process_transaction,
             get_sales_report,
+            get_sale_details,
+            get_sales_analytics,
             get_all_products,
             update_product,
-            delete_product,
-            get_weekly_revenue,
-            get_today_revenue
+            delete_product
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
