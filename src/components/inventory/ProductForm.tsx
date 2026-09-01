@@ -6,7 +6,14 @@ interface ProductFormProps {
   onProductAdded: () => void;
 }
 
-const CATEGORY_OPTIONS = ["Umum", "Alat Tulis", "Kertas", "Fotocopy & Print", "Jasa", "Aksesoris"];
+const CATEGORY_OPTIONS = [
+  "Umum",
+  "Alat Tulis",
+  "Kertas",
+  "Fotocopy & Print",
+  "Jasa",
+  "Aksesoris",
+];
 
 export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
   const [barcode, setBarcode] = useState("");
@@ -16,7 +23,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
   const [price, setPrice] = useState<number | "">("");
   const [stock, setStock] = useState<number | "">("");
   const [minStock, setMinStock] = useState<number | "">(5);
-  const [statusModal, setStatusModal] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [statusModal, setStatusModal] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +41,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
         min_stock: Number(minStock) || 5,
       });
 
-      setStatusModal({ type: "success", message: `${name} berhasil ditambahkan` });
+      setStatusModal({
+        type: "success",
+        message: `${name} berhasil ditambahkan`,
+      });
       setBarcode("");
       setName("");
       setCategory("Umum");
@@ -47,8 +60,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
 
   return (
     <div className="bg-white rounded-2xl p-6 flex flex-col h-full flex-5 shadow-sm overflow-y-auto w-full">
-      <h1 className="text-2xl font-bold text-center mb-6 mt-2">Input Barang Baru</h1>
-      <form onSubmit={handleSubmit} className="w-full mx-auto flex flex-col gap-4">
+      <h1 className="text-2xl font-bold text-center mb-6 mt-2">
+        Input Barang Baru
+      </h1>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full mx-auto flex flex-col gap-4"
+      >
         {/* Barcode */}
         <div className="flex flex-col gap-2">
           <label className="font-semibold text-base">Barcode Produk:</label>
@@ -107,11 +125,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
         {/* Harga Modal & Jual */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <label className="font-semibold text-base">Harga Modal (Beli):</label>
+            <label className="font-semibold text-base">
+              Harga Modal (Beli):
+            </label>
             <input
               type="number"
               value={costPrice}
-              onChange={(e) => setCostPrice(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setCostPrice(e.target.value ? Number(e.target.value) : "")
+              }
               placeholder="Rp 0"
               min={0}
               className="p-3 border border-gray-300 rounded-lg text-base focus:border-[#0b5d8a] outline-none shadow-sm"
@@ -122,7 +144,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
             <input
               type="number"
               value={price}
-              onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setPrice(e.target.value ? Number(e.target.value) : "")
+              }
               placeholder="Rp 0"
               required
               min={0}
@@ -138,7 +162,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
             <input
               type="number"
               value={stock}
-              onChange={(e) => setStock(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setStock(e.target.value ? Number(e.target.value) : "")
+              }
               placeholder="0"
               required
               min={0}
@@ -146,11 +172,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="font-semibold text-base">Min. Stok (Alert):</label>
+            <label className="font-semibold text-base">
+              Min. Stok (Alert):
+            </label>
             <input
               type="number"
               value={minStock}
-              onChange={(e) => setMinStock(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setMinStock(e.target.value ? Number(e.target.value) : "")
+              }
               placeholder="5"
               min={0}
               className="p-3 border border-gray-300 rounded-lg text-sm focus:border-[#0b5d8a] outline-none shadow-sm"
@@ -180,12 +210,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
               </div>
             )}
             <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">
-              {statusModal.type === "success" ? "Berhasil Disimpan!" : "Gagal Menyimpan!"}
+              {statusModal.type === "success"
+                ? "Berhasil Disimpan!"
+                : "Gagal Menyimpan!"}
             </h2>
-            <p className="text-center text-gray-600 mb-8 font-medium">{statusModal.message}</p>
+            <p className="text-center text-gray-600 mb-8 font-medium">
+              {statusModal.message}
+            </p>
             <button
               className={`w-full p-4 text-white rounded-xl font-bold text-lg transition-colors cursor-pointer ${
-                statusModal.type === "success" ? "bg-[#0b5d8a] hover:bg-[#084c70]" : "bg-red-500 hover:bg-red-600"
+                statusModal.type === "success"
+                  ? "bg-[#0b5d8a] hover:bg-[#084c70]"
+                  : "bg-red-500 hover:bg-red-600"
               }`}
               onClick={() => setStatusModal(null)}
             >
