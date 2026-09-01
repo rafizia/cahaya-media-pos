@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
-interface CartItem {
+export interface CartItem {
   barcode: string;
   name: string;
   category?: string;
@@ -11,7 +11,7 @@ interface CartItem {
   quantity: number;
 }
 
-interface SaleReport {
+export interface SaleReport {
   id: string;
   total_price: number;
   total_cost: number;
@@ -23,7 +23,7 @@ interface SaleReport {
   item_count: number;
 }
 
-interface SaleItemDetail {
+export interface SaleItemDetail {
   id: string;
   sale_id: string;
   barcode: string;
@@ -36,19 +36,19 @@ interface SaleItemDetail {
   profit: number;
 }
 
-interface SaleDetailResponse {
+export interface SaleDetailResponse {
   sale: SaleReport;
   items: SaleItemDetail[];
 }
 
-interface AnalyticsResponse {
+export interface AnalyticsResponse {
   today_revenue: number;
   today_profit: number;
   weekly_revenue: number;
   weekly_profit: number;
 }
 
-interface Product {
+export interface Product {
   id: string;
   barcode: string;
   name: string;
@@ -87,8 +87,11 @@ function App() {
   
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [editProductName, setEditProductName] = useState("");
+  const [editProductCategory, setEditProductCategory] = useState("Umum");
+  const [editProductCostPrice, setEditProductCostPrice] = useState<number | "">("");
   const [editProductPrice, setEditProductPrice] = useState<number | "">("");
   const [editProductStock, setEditProductStock] = useState<number | "">("");
+  const [editProductMinStock, setEditProductMinStock] = useState<number | "">(5);
   
   const [dbProductToDelete, setDbProductToDelete] = useState<Product | null>(null);
 
@@ -265,21 +268,27 @@ function App() {
   const handleEditProductClick = (p: Product) => {
     setProductToEdit(p);
     setEditProductName(p.name);
+    setEditProductCategory(p.category || "Umum");
+    setEditProductCostPrice(p.cost_price ?? 0);
     setEditProductPrice(p.price);
     setEditProductStock(p.stock);
+    setEditProductMinStock(p.min_stock ?? 5);
   };
 
   const saveProductEdits = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (productToEdit && editProductName !== "" && editProductPrice !== "" && editProductStock !== "") {
+    if (productToEdit && editProductName.trim() !== "" && editProductPrice !== "" && editProductStock !== "") {
        try {
           await invoke("update_product", {
              barcode: productToEdit.barcode,
              name: editProductName,
+             category: editProductCategory || "Umum",
+             cost_price: Number(editProductCostPrice) || 0,
              price: Number(editProductPrice),
              stock: Number(editProductStock),
+             min_stock: Number(editProductMinStock) || 5,
           });
-          setMessage(`Berhasil mengubah data produk: ${productToEdit.name}`);
+          setMessage(`Berhasil mengubah data produk: ${editProductName}`);
           setTimeout(() => setMessage(""), 3000);
           setProductToEdit(null);
           fetchAllProducts();
@@ -608,43 +617,58 @@ function App() {
               <table className="w-full border-separate border-spacing-y-2">
                 <thead>
                   <tr>
-                    <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama</th>
+                    <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama & Kategori</th>
                     <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Stok</th>
-                    <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga</th>
+                    <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga Jual</th>
                     <th className="text-base text-[#111] font-bold px-4 py-2 text-center w-12"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((p) => (
-                    <tr key={p.id} className="group transition-colors duration-100">
-                      <td 
-                        className="px-4 py-3.5 text-sm bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
-                        onClick={() => handleEditProductClick(p)}
-                        title="Klik untuk mengubah nama"
-                      >
-                         {p.name}
-                      </td>
-                      <td 
-                        className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
-                        onClick={() => handleEditProductClick(p)}
-                        title="Klik untuk mengubah stok"
-                      >
-                         {p.stock}
-                      </td>
-                      <td 
-                        className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
-                        onClick={() => handleEditProductClick(p)}
-                        title="Klik untuk mengubah harga"
-                      >
-                         {(p.price).toLocaleString('id-ID')}
-                      </td>
-                      <td className="px-4 py-3.5 text-sm bg-[#f6f6f6] text-center last:rounded-r-xl transition-colors">
-                        <button onClick={() => setDbProductToDelete(p)} className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors">
-                          <IconTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredProducts.map((p) => {
+                    const isLowStock = p.stock <= (p.min_stock ?? 5);
+                    return (
+                      <tr key={p.id} className="group transition-colors duration-100">
+                        <td 
+                          className="px-4 py-3 text-sm bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                          onClick={() => handleEditProductClick(p)}
+                          title="Klik untuk mengubah data produk"
+                        >
+                          <div className="font-semibold text-gray-900">{p.name}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-medium">{p.category || 'Umum'}</span>
+                            <span className="text-[11px] text-gray-500 font-mono">{p.barcode}</span>
+                          </div>
+                        </td>
+                        <td 
+                          className="px-4 py-3 text-sm bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                          onClick={() => handleEditProductClick(p)}
+                          title="Klik untuk mengubah stok"
+                        >
+                          <div className="font-bold text-base">{p.stock}</div>
+                          {isLowStock ? (
+                            <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded-full inline-block mt-0.5">
+                              Stok Menipis
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400">Min: {p.min_stock ?? 5}</span>
+                          )}
+                        </td>
+                        <td 
+                          className="px-4 py-3 text-sm bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                          onClick={() => handleEditProductClick(p)}
+                          title="Klik untuk mengubah harga"
+                        >
+                          <div className="font-bold text-gray-900">Rp {(p.price).toLocaleString('id-ID')}</div>
+                          <div className="text-[11px] text-gray-500">Modal: Rp {(p.cost_price ?? 0).toLocaleString('id-ID')}</div>
+                        </td>
+                        <td className="px-4 py-3 text-sm bg-[#f6f6f6] text-center last:rounded-r-xl transition-colors">
+                          <button onClick={() => setDbProductToDelete(p)} className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors">
+                            <IconTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {filteredProducts.length === 0 && (
                     <tr>
                       <td colSpan={4} className="text-center text-gray-500 py-4 bg-transparent border-none">Tidak ada produk</td>
@@ -819,51 +843,102 @@ function App() {
       {/* MODAL EDIT PRODUK DATABSE */}
       {productToEdit && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
-            <h2 className="text-xl font-bold mb-6 text-center">Edit Data Produk</h2>
-            <form onSubmit={saveProductEdits} className="w-full flex flex-col gap-4">
+          <div className="bg-white rounded-2xl p-6 w-[440px] shadow-lg flex flex-col items-center">
+            <h2 className="text-xl font-bold mb-4 text-center">Edit Data Produk</h2>
+            <form onSubmit={saveProductEdits} className="w-full flex flex-col gap-3.5">
                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Nama Produk Baru</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nama Produk</label>
                   <input
                     type="text"
                     value={editProductName}
                     onChange={(e) => setEditProductName(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
+                    className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-semibold focus:border-[#0b5d8a] outline-none"
+                    required
                     autoFocus
                   />
                </div>
+
                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Stok Baru</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Kategori</label>
                   <input
-                    type="number"
-                    value={editProductStock}
-                    onChange={(e) => setEditProductStock(e.target.value ? Number(e.target.value) : "")}
-                    className="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
-                    autoFocus
-                    min={0}
+                    type="text"
+                    value={editProductCategory}
+                    onChange={(e) => setEditProductCategory(e.target.value)}
+                    className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:border-[#0b5d8a] outline-none"
                   />
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {["Umum", "Alat Tulis", "Kertas", "Fotocopy & Print", "Jasa", "Aksesoris"].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setEditProductCategory(cat)}
+                        className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${editProductCategory === cat ? 'bg-[#0b5d8a] text-white border-[#0b5d8a]' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                </div>
-               <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Harga Baru (Rp)</label>
-                  <input
-                    type="number"
-                    value={editProductPrice}
-                    onChange={(e) => setEditProductPrice(e.target.value ? Number(e.target.value) : "")}
-                    className="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
-                    min={0}
-                  />
+
+               <div className="grid grid-cols-2 gap-3">
+                 <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Harga Modal (Rp)</label>
+                    <input
+                      type="number"
+                      value={editProductCostPrice}
+                      onChange={(e) => setEditProductCostPrice(e.target.value ? Number(e.target.value) : "")}
+                      className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:border-[#0b5d8a] outline-none"
+                      min={0}
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Harga Jual (Rp)</label>
+                    <input
+                      type="number"
+                      value={editProductPrice}
+                      onChange={(e) => setEditProductPrice(e.target.value ? Number(e.target.value) : "")}
+                      className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold text-[#0b5d8a] focus:border-[#0b5d8a] outline-none"
+                      required
+                      min={0}
+                    />
+                 </div>
                </div>
-               <div className="flex gap-4 w-full mt-4">
+
+               <div className="grid grid-cols-2 gap-3">
+                 <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Stok Saat Ini</label>
+                    <input
+                      type="number"
+                      value={editProductStock}
+                      onChange={(e) => setEditProductStock(e.target.value ? Number(e.target.value) : "")}
+                      className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold focus:border-[#0b5d8a] outline-none"
+                      min={0}
+                      required
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Min. Stok (Alert)</label>
+                    <input
+                      type="number"
+                      value={editProductMinStock}
+                      onChange={(e) => setEditProductMinStock(e.target.value ? Number(e.target.value) : "")}
+                      className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:border-[#0b5d8a] outline-none"
+                      min={0}
+                    />
+                 </div>
+               </div>
+
+               <div className="flex gap-3 w-full mt-3">
                  <button 
                    type="button"
-                   className="flex-1 p-3 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition-colors cursor-pointer"
+                   className="flex-1 p-2.5 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition-colors cursor-pointer text-sm"
                    onClick={() => setProductToEdit(null)}
                  >
                    Batal
                  </button>
                  <button 
                    type="submit"
-                   className="flex-1 p-3 bg-[#0b5d8a] text-white rounded-xl font-bold hover:bg-[#084c70] transition-colors cursor-pointer"
+                   className="flex-1 p-2.5 bg-[#0b5d8a] text-white rounded-xl font-bold hover:bg-[#084c70] transition-colors cursor-pointer text-sm"
                  >
                    Simpan Perubahan
                  </button>
