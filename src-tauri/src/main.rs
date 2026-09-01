@@ -322,6 +322,60 @@ fn process_transaction(
 }
 
 #[tauri::command]
+fn get_sale_details(state: State<'_, DbState>, sale_id: String) -> Result<SaleDetailResponse, String> {
+    let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+
+    let mut sale_stmt = conn.prepare(
+        "SELECT id, total_price, total_cost, total_profit, amount_paid, change_amount, payment_method, datetime(created_at, 'localtime')
+         FROM sales WHERE id = ?"
+    ).map_err(|e| e.to_string())?;
+
+    let sale = sale_stmt.query_row([&sale_id], |row| {
+        Ok(SaleReport {
+            id: row.get(0)?,
+            total_price: row.get(1)?,
+            total_cost: row.get(2)?,
+            total_profit: row.get(3)?,
+            amount_paid: row.get(4)?,
+            change_amount: row.get(5)?,
+            payment_method: row.get(6)?,
+            created_at: row.get(7)?,
+            item_count: 0,
+        })
+    }).map_err(|_| "Data transaksi tidak ditemukan".to_string())?;
+
+    let mut items_stmt = conn.prepare(
+        "SELECT id, sale_id, barcode, product_name, category, quantity, cost_price, price, subtotal, profit
+         FROM sale_items WHERE sale_id = ? ORDER BY id ASC"
+    ).map_err(|e| e.to_string())?;
+
+    let rows = items_stmt.query_map([&sale_id], |row| {
+        Ok(SaleItemDetail {
+            id: row.get(0)?,
+            sale_id: row.get(1)?,
+            barcode: row.get(2)?,
+            product_name: row.get(3)?,
+            category: row.get(4)?,
+            quantity: row.get(5)?,
+            cost_price: row.get(6)?,
+            price: row.get(7)?,
+            subtotal: row.get(8)?,
+            profit: row.get(9)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let mut items = Vec::new();
+    for row in rows {
+        items.push(row.map_err(|e| e.to_string())?);
+    }
+
+    Ok(SaleDetailResponse {
+        sale,
+        items,
+    })
+}
+
+#[tauri::command]
 fn get_sales_report(state: State<'_, DbState>, month: String, year: String) -> Result<Vec<SaleReport>, String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
     
