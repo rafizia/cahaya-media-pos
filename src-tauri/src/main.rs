@@ -146,16 +146,28 @@ fn init_db(db_path: std::path::PathBuf) -> Result<Connection> {
 }
 
 #[tauri::command]
-fn add_product(state: State<'_, DbState>, barcode: String, name: String, price: i64, stock: i32) -> Result<(), String> {
+fn add_product(
+    state: State<'_, DbState>,
+    barcode: String,
+    name: String,
+    category: Option<String>,
+    cost_price: i64,
+    price: i64,
+    stock: i32,
+    min_stock: Option<i32>,
+) -> Result<(), String> {
     let conn = state.0.lock().map_err(|_| "Gagal mendapatkan koneksi database")?;
+    let id = Uuid::new_v4().to_string();
+    let cat = category.unwrap_or_else(|| "Umum".to_string());
+    let min_stk = min_stock.unwrap_or(5);
 
     conn.execute(
-        "INSERT INTO products (barcode, name, price, stock) VALUES (?1, ?2, ?3, ?4)",
-        rusqlite::params![barcode, name, price, stock],
+        "INSERT INTO products (id, barcode, name, category, cost_price, price, stock, min_stock) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![id, barcode, name, cat, cost_price, price, stock, min_stk],
     )
     .map_err(|e| {
         if e.to_string().contains("UNIQUE constraint failed") {
-            "Produk sudah terdaftar!".to_string()
+            "Produk dengan barcode ini sudah terdaftar!".to_string()
         } else {
             e.to_string()
         }
