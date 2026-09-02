@@ -75,5 +75,19 @@ pub fn init_db(db_path: PathBuf) -> Result<Connection> {
         [],
     )?;
 
+    // Indexes for high-performance joins, lookups, and analytics queries
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id)",
+        [],
+    )?;
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at)",
+        [],
+    )?;
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)",
+        [],
+    )?;
+
     Ok(conn)
 }
