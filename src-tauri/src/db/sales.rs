@@ -111,12 +111,15 @@ pub fn get_sales_report(conn: &Connection, month: &str, year: &str) -> Result<Ve
                      FROM sales s
                      LEFT JOIN sale_items si ON s.id = si.sale_id".to_string();
     let mut conditions = Vec::new();
+    let mut param_values: Vec<String> = Vec::new();
 
     if !year.is_empty() {
-        conditions.push(format!("strftime('%Y', datetime(s.created_at, 'localtime')) = '{}'", year));
+        conditions.push("strftime('%Y', datetime(s.created_at, 'localtime')) = ?".to_string());
+        param_values.push(year.to_string());
     }
     if !month.is_empty() {
-        conditions.push(format!("strftime('%m', datetime(s.created_at, 'localtime')) = '{}'", month));
+        conditions.push("strftime('%m', datetime(s.created_at, 'localtime')) = ?".to_string());
+        param_values.push(month.to_string());
     }
     
     if !conditions.is_empty() {
@@ -130,7 +133,7 @@ pub fn get_sales_report(conn: &Connection, month: &str, year: &str) -> Result<Ve
         .prepare(&query)
         .map_err(|e| e.to_string())?;
 
-    let rows = stmt.query_map([], |row| {
+    let rows = stmt.query_map(rusqlite::params_from_iter(param_values.iter()), |row| {
         Ok(SaleReport {
             id: row.get(0)?,
             total_price: row.get(1)?,
