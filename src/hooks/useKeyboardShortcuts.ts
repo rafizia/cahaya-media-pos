@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export type PosMode = "kasir" | "input" | "laporan";
 
@@ -16,13 +16,18 @@ interface ShortcutHandlers {
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers, isModalOpen = false) {
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const current = handlersRef.current;
+
       // If a modal is open, let modal handle Esc or prevent conflicting global switches
       if (isModalOpen) {
         if (e.key === "Escape") {
           e.preventDefault();
-          handlers.onEscape?.();
+          current.onEscape?.();
         }
         return;
       }
@@ -31,48 +36,48 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers, isModalOpen = f
       switch (e.key) {
         case "F1":
           e.preventDefault();
-          handlers.onSwitchMode?.("kasir");
-          handlers.onFocusBarcode?.();
+          current.onSwitchMode?.("kasir");
+          current.onFocusBarcode?.();
           break;
 
         case "F2":
           e.preventDefault();
-          handlers.onSwitchMode?.("input");
+          current.onSwitchMode?.("input");
           break;
 
         case "F3":
           e.preventDefault();
-          handlers.onSwitchMode?.("laporan");
+          current.onSwitchMode?.("laporan");
           break;
 
         case "F5":
           e.preventDefault();
-          handlers.onFocusSearch?.();
+          current.onFocusSearch?.();
           break;
 
         case "F6":
           e.preventDefault();
-          handlers.onQuickExactCash?.();
+          current.onQuickExactCash?.();
           break;
 
         case "F7":
           e.preventDefault();
-          handlers.onQuickCash50k?.();
+          current.onQuickCash50k?.();
           break;
 
         case "F8":
           e.preventDefault();
-          handlers.onQuickCash100k?.();
+          current.onQuickCash100k?.();
           break;
 
         case "F9":
           e.preventDefault();
-          handlers.onQuickCash200k?.();
+          current.onQuickCash200k?.();
           break;
 
         case "Escape":
           e.preventDefault();
-          handlers.onEscape?.();
+          current.onEscape?.();
           break;
 
         case "Delete": {
@@ -80,7 +85,7 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers, isModalOpen = f
           const activeTag = (document.activeElement?.tagName || "").toLowerCase();
           if (activeTag !== "input" && activeTag !== "textarea") {
             e.preventDefault();
-            handlers.onDeleteSelected?.();
+            current.onDeleteSelected?.();
           }
           break;
         }
@@ -92,5 +97,5 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers, isModalOpen = f
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlers, isModalOpen]);
+  }, [isModalOpen]);
 }
