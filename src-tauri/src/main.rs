@@ -21,7 +21,7 @@ fn main() {
             // Buat folder jika belum ada (misalnya: C:\Users\User\AppData\Roaming\com.tauri.dev)
             std::fs::create_dir_all(&app_dir).unwrap();
             
-            let db_path = app_dir.join("cahaya_media.db");
+            let db_path = app_dir.join("cahaya_pos.db");
             
             // Inisialisasi DB di path absolut yang aman
             let conn = db::init_db(db_path).expect("Gagal inisialisasi database");

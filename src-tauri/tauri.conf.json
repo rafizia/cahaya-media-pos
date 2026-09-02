@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "cahaya-media-pos",
+  "productName": "cahaya-pos",
   "version": "0.1.0",
-  "identifier": "com.rafi.cahaya-media-pos",
+  "identifier": "com.rafi.cahaya-pos",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "cahaya-media-pos",
+        "title": "Cahaya POS",
         "width": 800,
         "height": 600,
         "maximized": true
