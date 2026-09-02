@@ -14,6 +14,16 @@ pub fn process_transaction(
         return Err("Keranjang belanja kosong".to_string());
     }
 
+    for item in &items {
+        if item.quantity <= 0 {
+            return Err(format!("Kuantitas item '{}' harus lebih dari 0", item.name));
+        }
+    }
+
+    if total > 0 && amount_paid < total {
+        return Err("Jumlah pembayaran kurang dari total belanja".to_string());
+    }
+
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
     let sale_id = Uuid::new_v4().to_string();
@@ -61,7 +71,7 @@ pub fn get_sale_details(conn: &Connection, sale_id: &str) -> Result<SaleDetailRe
          FROM sales WHERE id = ?"
     ).map_err(|e| e.to_string())?;
 
-    let sale = sale_stmt.query_row([sale_id], |row| {
+    let mut sale = sale_stmt.query_row([sale_id], |row| {
         Ok(SaleReport {
             id: row.get(0)?,
             total_price: row.get(1)?,
@@ -96,9 +106,14 @@ pub fn get_sale_details(conn: &Connection, sale_id: &str) -> Result<SaleDetailRe
     }).map_err(|e| e.to_string())?;
 
     let mut items = Vec::new();
+    let mut total_quantity: i32 = 0;
     for row in rows {
-        items.push(row.map_err(|e| e.to_string())?);
+        let item = row.map_err(|e| e.to_string())?;
+        total_quantity += item.quantity;
+        items.push(item);
     }
+
+    sale.item_count = total_quantity;
 
     Ok(SaleDetailResponse {
         sale,
@@ -107,7 +122,7 @@ pub fn get_sale_details(conn: &Connection, sale_id: &str) -> Result<SaleDetailRe
 }
 
 pub fn get_sales_report(conn: &Connection, month: &str, year: &str) -> Result<Vec<SaleReport>, String> {
-    let mut query = "SELECT s.id, s.total_price, s.total_cost, s.total_profit, s.amount_paid, s.change_amount, s.payment_method, datetime(s.created_at, 'localtime'), COALESCE(COUNT(si.id), 0)
+    let mut query = "SELECT s.id, s.total_price, s.total_cost, s.total_profit, s.amount_paid, s.change_amount, s.payment_method, datetime(s.created_at, 'localtime'), COALESCE(SUM(si.quantity), 0)
                      FROM sales s
                      LEFT JOIN sale_items si ON s.id = si.sale_id".to_string();
     let mut conditions = Vec::new();
