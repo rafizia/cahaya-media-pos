@@ -39,9 +39,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
     });
   }, [products, search, categoryFilter]);
 
-  const lowStockCount = products.filter(
-    (p) => p.stock <= (p.min_stock ?? 5),
-  ).length;
+  const lowStockCount = useMemo(() => {
+    return products.filter((p) => p.stock <= (p.min_stock ?? 5)).length;
+  }, [products]);
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-xs">
