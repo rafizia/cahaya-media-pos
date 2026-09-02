@@ -25,6 +25,8 @@ export const PaymentHUD: React.FC<PaymentHUDProps> = ({
 
   const quickNominals = [
     { label: "Uang Pas", shortcut: "F6", value: total },
+    { label: "10.000", value: 10000 },
+    { label: "20.000", value: 20000 },
     { label: "50.000", shortcut: "F7", value: 50000 },
     { label: "100.000", shortcut: "F8", value: 100000 },
     { label: "200.000", shortcut: "F9", value: 200000 },
@@ -93,7 +95,7 @@ export const PaymentHUD: React.FC<PaymentHUDProps> = ({
 
       {/* Quick Cash Presets */}
       <div className="flex flex-col gap-2 pt-1 border-t border-neutral-100">
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
           {quickNominals.map((nom) => (
             <button
               key={nom.label}
@@ -104,11 +106,15 @@ export const PaymentHUD: React.FC<PaymentHUDProps> = ({
               <span className="font-mono text-xs font-bold leading-tight">
                 {nom.label}
               </span>
-              <KeyBadge
-                shortcut={nom.shortcut}
-                variant="light"
-                className="text-[9px] scale-90 mt-0.5"
-              />
+              {nom.shortcut ? (
+                <KeyBadge
+                  shortcut={nom.shortcut}
+                  variant="light"
+                  className="text-[9px] scale-90 mt-0.5"
+                />
+              ) : (
+                <span className="text-[9px] text-neutral-400 mt-0.5 font-mono">Rp</span>
+              )}
             </button>
           ))}
         </div>
