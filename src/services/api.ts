@@ -20,11 +20,31 @@ export const posApi = {
   },
 
   addProduct: async (payload: NewProductPayload): Promise<void> => {
-    return await invoke<void>("add_product", { ...payload });
+    return await invoke<void>("add_product", {
+      barcode: payload.barcode,
+      name: payload.name,
+      category: payload.category,
+      costPrice: payload.cost_price,
+      cost_price: payload.cost_price,
+      price: payload.price,
+      stock: payload.stock,
+      minStock: payload.min_stock,
+      min_stock: payload.min_stock,
+    });
   },
 
   updateProduct: async (payload: UpdateProductPayload): Promise<void> => {
-    return await invoke<void>("update_product", { ...payload });
+    return await invoke<void>("update_product", {
+      barcode: payload.barcode,
+      name: payload.name,
+      category: payload.category,
+      costPrice: payload.cost_price,
+      cost_price: payload.cost_price,
+      price: payload.price,
+      stock: payload.stock,
+      minStock: payload.min_stock,
+      min_stock: payload.min_stock,
+    });
   },
 
   deleteProduct: async (barcode: string): Promise<void> => {
@@ -33,7 +53,24 @@ export const posApi = {
 
   // --- Transactions & Cashier ---
   processTransaction: async (payload: CheckoutPayload): Promise<void> => {
-    return await invoke<void>("process_transaction", { ...payload });
+    return await invoke<void>("process_transaction", {
+      items: payload.items.map((item) => ({
+        barcode: item.barcode,
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        cost_price: item.cost_price,
+        costPrice: item.cost_price,
+        price: item.price,
+      })),
+      total: payload.total,
+      amountPaid: payload.amount_paid,
+      amount_paid: payload.amount_paid,
+      changeAmount: payload.change_amount,
+      change_amount: payload.change_amount,
+      paymentMethod: payload.payment_method,
+      payment_method: payload.payment_method,
+    });
   },
 
   // --- Reports & Analytics ---
@@ -46,6 +83,9 @@ export const posApi = {
   },
 
   getSaleDetails: async (saleId: string): Promise<SaleDetailResponse> => {
-    return await invoke<SaleDetailResponse>("get_sale_details", { saleId });
+    return await invoke<SaleDetailResponse>("get_sale_details", {
+      saleId,
+      sale_id: saleId,
+    });
   },
 };
