@@ -96,7 +96,8 @@ export const StokView: React.FC<StokViewProps> = ({
                 {deletingProduct.name}
               </h3>
               <p className="text-xs text-neutral-600 mt-2">
-                Tindakan ini akan menghapus produk secara permanen dari SQLite.
+                Tindakan ini akan menghapus produk secara permanen dari
+                database.
               </p>
             </div>
 
