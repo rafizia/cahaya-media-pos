@@ -31,8 +31,16 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [stock, setStock] = useState<number | "">("");
   const [minStock, setMinStock] = useState<number | "">(5);
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const categories = ["Umum", "Alat Tulis", "Kertas", "Fotocopy & Print", "Jasa", "Aksesoris"];
+  const categories = [
+    "Umum",
+    "Alat Tulis",
+    "Kertas",
+    "Fotocopy & Print",
+    "Jasa",
+    "Aksesoris",
+  ];
 
   useEffect(() => {
     if (product) {
@@ -42,6 +50,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       setPrice(product.price);
       setStock(product.stock);
       setMinStock(product.min_stock ?? 5);
+      setErrorMessage(null);
     }
   }, [product]);
 
@@ -54,9 +63,13 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || price === "" || stock === "") return;
+    if (!name.trim() || price === "" || stock === "") {
+      setErrorMessage("Nama, harga jual, dan stok harus diisi!");
+      return;
+    }
 
     setIsSaving(true);
+    setErrorMessage(null);
     try {
       await onSave({
         barcode: product.barcode,
@@ -68,6 +81,8 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         min_stock: typeof minStock === "number" ? minStock : 5,
       });
       onClose();
+    } catch (err) {
+      setErrorMessage(`Gagal menyimpan perubahan: ${err}`);
     } finally {
       setIsSaving(false);
     }
@@ -84,7 +99,9 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         {/* Product Name */}
         <div>
-          <label className="block text-xs font-bold text-neutral-700 mb-1">Nama Produk</label>
+          <label className="block text-xs font-bold text-neutral-700 mb-1">
+            Nama Produk
+          </label>
           <input
             type="text"
             value={name}
@@ -97,7 +114,9 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
         {/* Category */}
         <div>
-          <label className="block text-xs font-bold text-neutral-700 mb-1">Kategori</label>
+          <label className="block text-xs font-bold text-neutral-700 mb-1">
+            Kategori
+          </label>
           <input
             type="text"
             value={category}
@@ -125,22 +144,30 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         {/* Pricing */}
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-neutral-100">
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">Harga Modal (Rp)</label>
+            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+              Harga Modal (Rp)
+            </label>
             <input
               type="number"
               min={0}
               value={costPrice}
-              onChange={(e) => setCostPrice(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setCostPrice(e.target.value ? Number(e.target.value) : "")
+              }
               className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-bold outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">Harga Jual (Rp) *</label>
+            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+              Harga Jual (Rp) *
+            </label>
             <input
               type="number"
               min={0}
               value={price}
-              onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setPrice(e.target.value ? Number(e.target.value) : "")
+              }
               required
               className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-bold text-[#0F62FE] outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
             />
@@ -150,7 +177,9 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         {/* Margin Preview */}
         {priceNum > 0 && (
           <div className="px-3 py-1.5 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs flex items-center justify-between text-emerald-800 font-mono">
-            <span className="font-sans text-[11px] font-medium text-emerald-700">Margin Laba:</span>
+            <span className="font-sans text-[11px] font-medium text-emerald-700">
+              Margin Laba:
+            </span>
             <span className="font-bold tabular-nums">
               +Rp {marginRp.toLocaleString("id-ID")} ({marginPct}%)
             </span>
@@ -160,27 +189,49 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
         {/* Stock & Minimum Alert */}
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-neutral-100">
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">Stok Saat Ini *</label>
+            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+              Stok Saat Ini *
+            </label>
             <input
               type="number"
               min={0}
               value={stock}
-              onChange={(e) => setStock(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setStock(e.target.value ? Number(e.target.value) : "")
+              }
               required
               className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-bold outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">Batas Minimum (Alert)</label>
+            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+              Batas Minimum (Alert)
+            </label>
             <input
               type="number"
               min={0}
               value={minStock}
-              onChange={(e) => setMinStock(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setMinStock(e.target.value ? Number(e.target.value) : "")
+              }
               className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-medium outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
             />
           </div>
         </div>
+
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="p-2.5 bg-rose-50 border border-rose-300 rounded-lg text-xs font-semibold text-rose-800 flex items-center justify-between">
+            <span>{errorMessage}</span>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-neutral-400 hover:text-neutral-700 font-bold px-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2.5 pt-3 border-t border-neutral-100">
@@ -194,7 +245,7 @@ export const ProductEditModal: React.FC<ProductEditModalProps> = ({
           <button
             type="submit"
             disabled={isSaving}
-            className="flex-1 py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 px-4 bg-pos-blue hover:bg-[#084C70] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
             <span>{isSaving ? "Menyimpan..." : "Simpan Perubahan"}</span>
             <KeyBadge shortcut="Enter ↵" variant="dark" />

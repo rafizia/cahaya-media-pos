@@ -18,7 +18,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.barcode.includes(search) ||
-      (p.category && p.category.toLowerCase().includes(search.toLowerCase()))
+      (p.category && p.category.toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -36,9 +36,15 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         <table className="w-full border-separate border-spacing-y-2">
           <thead>
             <tr>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama & Kategori</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Stok</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga</th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-left">
+                Nama & Kategori
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-center">
+                Stok
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">
+                Harga
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -62,7 +68,9 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                       <span className="text-[10px] bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-medium">
                         {p.category || "Umum"}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-mono">{p.barcode}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {p.barcode}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm bg-[#f6f6f6] text-center group-hover:bg-[#eee] transition-colors">
@@ -85,7 +93,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={3} className="text-center text-gray-500 py-8 bg-transparent border-none">
+                <td
+                  colSpan={3}
+                  className="text-center text-gray-500 py-8 bg-transparent border-none"
+                >
                   Tidak ada produk ditemukan
                 </td>
               </tr>

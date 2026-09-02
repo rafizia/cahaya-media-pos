@@ -198,8 +198,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ onProductAdded }) => {
 
       {/* MODAL STATUS TAMBAH PRODUK */}
       {statusModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[60]">
-          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-60">
+          <div className="bg-white rounded-2xl p-6 w-100 shadow-lg flex flex-col items-center">
             {statusModal.type === "success" ? (
               <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
                 <IconCheck />

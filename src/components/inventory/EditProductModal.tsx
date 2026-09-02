@@ -8,7 +8,14 @@ interface EditProductModalProps {
   onSaveSuccess: () => void;
 }
 
-const CATEGORY_OPTIONS = ["Umum", "Alat Tulis", "Kertas", "Fotocopy & Print", "Jasa", "Aksesoris"];
+const CATEGORY_OPTIONS = [
+  "Umum",
+  "Alat Tulis",
+  "Kertas",
+  "Fotocopy & Print",
+  "Jasa",
+  "Aksesoris",
+];
 
 export const EditProductModal: React.FC<EditProductModalProps> = ({
   product,
@@ -73,7 +80,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Nama Produk</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">
+              Nama Produk
+            </label>
             <input
               type="text"
               value={name}
@@ -85,7 +94,9 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Kategori</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">
+              Kategori
+            </label>
             <input
               type="text"
               value={category}
@@ -112,21 +123,29 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Harga Modal (Rp)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Harga Modal (Rp)
+              </label>
               <input
                 type="number"
                 value={costPrice}
-                onChange={(e) => setCostPrice(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  setCostPrice(e.target.value ? Number(e.target.value) : "")
+                }
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:border-[#0b5d8a] outline-none"
                 min={0}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Harga Jual (Rp)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Harga Jual (Rp)
+              </label>
               <input
                 type="number"
                 value={price}
-                onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  setPrice(e.target.value ? Number(e.target.value) : "")
+                }
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold text-[#0b5d8a] focus:border-[#0b5d8a] outline-none"
                 required
                 min={0}
@@ -136,22 +155,30 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Stok Saat Ini</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Stok Saat Ini
+              </label>
               <input
                 type="number"
                 value={stock}
-                onChange={(e) => setStock(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  setStock(e.target.value ? Number(e.target.value) : "")
+                }
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold focus:border-[#0b5d8a] outline-none"
                 min={0}
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Min. Stok (Alert)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Min. Stok (Alert)
+              </label>
               <input
                 type="number"
                 value={minStock}
-                onChange={(e) => setMinStock(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  setMinStock(e.target.value ? Number(e.target.value) : "")
+                }
                 className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:border-[#0b5d8a] outline-none"
                 min={0}
               />

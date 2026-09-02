@@ -23,9 +23,11 @@ function App() {
   // Reports state
   const currentDate = new Date();
   const [filterMonth, setFilterMonth] = useState(
-    (currentDate.getMonth() + 1).toString().padStart(2, "0")
+    (currentDate.getMonth() + 1).toString().padStart(2, "0"),
   );
-  const [filterYear, setFilterYear] = useState(currentDate.getFullYear().toString());
+  const [filterYear, setFilterYear] = useState(
+    currentDate.getFullYear().toString(),
+  );
   const [reports, setReports] = useState<SaleReport[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsResponse>({
     today_revenue: 0,
@@ -78,12 +80,14 @@ function App() {
   // --- Cart Actions ---
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.barcode === product.barcode);
+      const existing = prevCart.find(
+        (item) => item.barcode === product.barcode,
+      );
       if (existing) {
         return prevCart.map((item) =>
           item.barcode === product.barcode
             ? { ...item, quantity: item.quantity + 1 }
-            : item
+            : item,
         );
       }
       return [
@@ -120,7 +124,9 @@ function App() {
       handleRemoveItem(barcode);
     } else {
       setCart((prev) =>
-        prev.map((item) => (item.barcode === barcode ? { ...item, quantity } : item))
+        prev.map((item) =>
+          item.barcode === barcode ? { ...item, quantity } : item,
+        ),
       );
     }
   };
@@ -135,7 +141,10 @@ function App() {
   };
 
   // --- Checkout Action ---
-  const totalHarga = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const totalHarga = cart.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
 
   const handleCheckout = async () => {
     if (cart.length === 0) {
@@ -242,11 +251,11 @@ function App() {
         }
       },
     },
-    showSuccessModal
+    showSuccessModal,
   );
 
   return (
-    <div className="flex flex-col h-screen bg-[#090A0C] font-sans antialiased overflow-hidden select-none">
+    <div className="flex flex-col h-screen bg-pos-dark font-sans antialiased overflow-hidden select-none">
       {/* 1. Industrial Top Navigation Header */}
       <TopNav activeMode={mode} onSelectMode={(m) => setMode(m)} />
 
@@ -306,10 +315,9 @@ function App() {
               <IconCheck size={32} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-neutral-900">Pembayaran Sukses</h3>
-              <p className="text-xs text-neutral-500 mt-1">
-                Data transaksi dan pengurangan stok telah tersimpan di SQLite.
-              </p>
+              <h3 className="text-lg font-bold text-neutral-900">
+                Pembayaran Sukses
+              </h3>
             </div>
 
             <button

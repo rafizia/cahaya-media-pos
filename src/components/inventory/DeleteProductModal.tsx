@@ -30,13 +30,16 @@ export const DeleteProductModal: React.FC<DeleteProductModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+      <div className="bg-white rounded-2xl p-6 w-100 shadow-lg flex flex-col items-center">
         <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
           <IconTrash size={32} />
         </div>
-        <h2 className="text-xl font-bold mb-2 text-center">Hapus Produk Permanen?</h2>
+        <h2 className="text-xl font-bold mb-2 text-center">
+          Hapus Produk Permanen?
+        </h2>
         <p className="text-center text-gray-600 mb-6">
-          Apakah Anda yakin ingin menghapus <strong>{product.name}</strong> dari database?
+          Apakah Anda yakin ingin menghapus <strong>{product.name}</strong> dari
+          database?
         </p>
 
         {errorMsg && (

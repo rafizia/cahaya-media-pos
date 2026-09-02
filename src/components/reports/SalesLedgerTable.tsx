@@ -52,7 +52,7 @@ export const SalesLedgerTable: React.FC<SalesLedgerTableProps> = ({
           <select
             value={filterMonth}
             onChange={(e) => onMonthChange(e.target.value)}
-            className="px-3 py-1.5 bg-white text-neutral-800 rounded-lg text-xs font-medium border border-neutral-300 outline-none focus:border-[#0F62FE] cursor-pointer"
+            className="px-3 py-1.5 bg-white text-neutral-800 rounded-lg text-xs font-semibold border border-neutral-300 outline-none focus:border-[#0B5D8A] cursor-pointer"
           >
             {months.map((m) => (
               <option key={m.val} value={m.val}>
@@ -64,7 +64,7 @@ export const SalesLedgerTable: React.FC<SalesLedgerTableProps> = ({
           <select
             value={filterYear}
             onChange={(e) => onYearChange(e.target.value)}
-            className="px-3 py-1.5 bg-white text-neutral-800 rounded-lg text-xs font-medium border border-neutral-300 outline-none focus:border-[#0F62FE] cursor-pointer"
+            className="px-3 py-1.5 bg-white text-neutral-800 rounded-lg text-xs font-semibold border border-neutral-300 outline-none focus:border-[#0B5D8A] cursor-pointer"
           >
             {years.map((y) => (
               <option key={y.val} value={y.val}>
@@ -74,8 +74,8 @@ export const SalesLedgerTable: React.FC<SalesLedgerTableProps> = ({
           </select>
         </div>
 
-        <div className="text-xs font-mono text-neutral-500">
-          Ditemukan <strong>{reports.length} Struk Penjualan</strong>
+        <div className="text-xs font-mono text-neutral-600">
+          Ditemukan <strong className="text-neutral-900">{reports.length} Struk Penjualan</strong>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export const SalesLedgerTable: React.FC<SalesLedgerTableProps> = ({
       <div className="flex-1 overflow-y-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-neutral-100/75 text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-600 border-b border-neutral-200 sticky top-0 z-10">
+            <tr className="bg-neutral-100/75 text-xs font-mono font-bold uppercase tracking-wider text-neutral-600 border-b border-neutral-200 sticky top-0 z-10">
               <th className="py-2.5 px-3">ID Struk</th>
               <th className="py-2.5 px-3">Waktu Transaksi</th>
               <th className="py-2.5 px-2 text-center w-24">Item</th>
@@ -99,30 +99,30 @@ export const SalesLedgerTable: React.FC<SalesLedgerTableProps> = ({
                 onClick={() => onViewSaleDetail(s.id)}
                 className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
               >
-                <td className="py-2.5 px-3">
-                  <span className="font-bold text-neutral-800 group-hover:text-[#0F62FE] transition-colors text-xs">
+                <td className="py-3 px-3">
+                  <span className="font-bold text-neutral-800 group-hover:text-[#0B5D8A] transition-colors text-xs font-mono">
                     #{s.id.length > 8 ? `${s.id.substring(0, 8)}...` : s.id}
                   </span>
                 </td>
-                <td className="py-2.5 px-3 text-xs text-neutral-500 font-sans">
+                <td className="py-3 px-3 text-sm text-neutral-600 font-sans">
                   {s.created_at}
                 </td>
-                <td className="py-2.5 px-2 text-center">
-                  <span className="text-[11px] bg-neutral-100 text-neutral-700 font-semibold px-2 py-0.5 rounded border border-neutral-200">
+                <td className="py-3 px-2 text-center">
+                  <span className="text-xs bg-neutral-100 text-neutral-700 font-semibold px-2 py-0.5 rounded border border-neutral-200">
                     {s.item_count} item
                   </span>
                 </td>
-                <td className="py-2.5 px-3 text-right font-bold text-neutral-900 text-xs">
+                <td className="py-3 px-3 text-right font-bold text-neutral-900 text-sm">
                   Rp {s.total_price.toLocaleString("id-ID")}
                 </td>
-                <td className="py-2.5 px-3 text-right font-bold text-emerald-700 text-xs">
+                <td className="py-3 px-3 text-right font-bold text-emerald-700 text-sm">
                   +Rp {s.total_profit.toLocaleString("id-ID")}
                 </td>
-                <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     onClick={() => onViewSaleDetail(s.id)}
-                    className="px-2.5 py-1 text-[11px] font-bold bg-neutral-100 text-neutral-700 hover:bg-[#0F62FE] hover:text-white rounded transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-bold bg-neutral-100 text-neutral-700 hover:bg-[#0B5D8A] hover:text-white rounded-lg transition-colors cursor-pointer"
                   >
                     Rincian
                   </button>

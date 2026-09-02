@@ -43,7 +43,7 @@ export const KasirView: React.FC<KasirViewProps> = ({
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
-    <div className="flex-1 p-4 overflow-hidden h-full flex gap-4 bg-[#F8F9FA]">
+    <div className="flex-1 p-4 overflow-hidden h-full flex gap-4 bg-pos-canvas">
       {/* Left Column (60%): Cart Ledger Tape + Payment HUD */}
       <div className="flex-5 flex flex-col gap-3.5 h-full overflow-hidden">
         {/* Active Cart Ledger Tape */}

@@ -1,6 +1,9 @@
 import React from "react";
 
-export const IconKasir: React.FC<{ size?: number; className?: string }> = ({ size = 20, className }) => (
+export const IconKasir: React.FC<{ size?: number; className?: string }> = ({
+  size = 20,
+  className,
+}) => (
   <svg
     width={size}
     height={size}
@@ -18,7 +21,10 @@ export const IconKasir: React.FC<{ size?: number; className?: string }> = ({ siz
   </svg>
 );
 
-export const IconStok: React.FC<{ size?: number; className?: string }> = ({ size = 20, className }) => (
+export const IconStok: React.FC<{ size?: number; className?: string }> = ({
+  size = 20,
+  className,
+}) => (
   <svg
     width={size}
     height={size}
@@ -36,7 +42,10 @@ export const IconStok: React.FC<{ size?: number; className?: string }> = ({ size
   </svg>
 );
 
-export const IconLaporan: React.FC<{ size?: number; className?: string }> = ({ size = 20, className }) => (
+export const IconLaporan: React.FC<{ size?: number; className?: string }> = ({
+  size = 20,
+  className,
+}) => (
   <svg
     width={size}
     height={size}
@@ -56,7 +65,10 @@ export const IconLaporan: React.FC<{ size?: number; className?: string }> = ({ s
   </svg>
 );
 
-export const IconTrash: React.FC<{ size?: number; className?: string }> = ({ size = 20, className }) => (
+export const IconTrash: React.FC<{ size?: number; className?: string }> = ({
+  size = 20,
+  className,
+}) => (
   <svg
     width={size}
     height={size}
@@ -75,7 +87,10 @@ export const IconTrash: React.FC<{ size?: number; className?: string }> = ({ siz
   </svg>
 );
 
-export const IconCheck: React.FC<{ size?: number; className?: string }> = ({ size = 40, className }) => (
+export const IconCheck: React.FC<{ size?: number; className?: string }> = ({
+  size = 40,
+  className,
+}) => (
   <svg
     width={size}
     height={size}
@@ -91,7 +106,10 @@ export const IconCheck: React.FC<{ size?: number; className?: string }> = ({ siz
   </svg>
 );
 
-export const IconX: React.FC<{ size?: number; className?: string }> = ({ size = 24, className }) => (
+export const IconX: React.FC<{ size?: number; className?: string }> = ({
+  size = 24,
+  className,
+}) => (
   <svg
     width={size}
     height={size}

@@ -19,7 +19,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.barcode.includes(search) ||
-      (p.category && p.category.toLowerCase().includes(search.toLowerCase()))
+      (p.category && p.category.toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -37,9 +37,15 @@ export const ProductTable: React.FC<ProductTableProps> = ({
         <table className="w-full border-separate border-spacing-y-2">
           <thead>
             <tr>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama & Kategori</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Stok</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga Jual</th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-left">
+                Nama & Kategori
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-center">
+                Stok
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">
+                Harga Jual
+              </th>
               <th className="text-base text-[#111] font-bold px-4 py-2 text-center w-12"></th>
             </tr>
           </thead>
@@ -49,7 +55,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
               return (
                 <tr key={p.id} className="group transition-colors duration-100">
                   <td
-                    className="px-4 py-3 text-sm bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                    className="px-4 py-3 text-sm bg-[#f6f6f6] first:rounded-l-xl transition-colors cursor-pointer hover:text-[#0b5d8a]! hover:underline"
                     onClick={() => onEditProduct(p)}
                     title="Klik untuk mengubah data produk"
                   >
@@ -58,11 +64,13 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       <span className="text-[11px] bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-medium">
                         {p.category || "Umum"}
                       </span>
-                      <span className="text-[11px] text-gray-500 font-mono">{p.barcode}</span>
+                      <span className="text-[11px] text-gray-500 font-mono">
+                        {p.barcode}
+                      </span>
                     </div>
                   </td>
                   <td
-                    className="px-4 py-3 text-sm bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                    className="px-4 py-3 text-sm bg-[#f6f6f6] text-center transition-colors cursor-pointer hover:text-[#0b5d8a]! hover:underline"
                     onClick={() => onEditProduct(p)}
                     title="Klik untuk mengubah stok"
                   >
@@ -72,15 +80,19 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                         Stok Menipis
                       </span>
                     ) : (
-                      <span className="text-[10px] text-gray-400">Min: {p.min_stock ?? 5}</span>
+                      <span className="text-[10px] text-gray-400">
+                        Min: {p.min_stock ?? 5}
+                      </span>
                     )}
                   </td>
                   <td
-                    className="px-4 py-3 text-sm bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:!text-[#0b5d8a] hover:underline"
+                    className="px-4 py-3 text-sm bg-[#f6f6f6] text-right transition-colors cursor-pointer hover:text-[#0b5d8a]! hover:underline"
                     onClick={() => onEditProduct(p)}
                     title="Klik untuk mengubah harga"
                   >
-                    <div className="font-bold text-gray-900">Rp {p.price.toLocaleString("id-ID")}</div>
+                    <div className="font-bold text-gray-900">
+                      Rp {p.price.toLocaleString("id-ID")}
+                    </div>
                     <div className="text-[11px] text-gray-500">
                       Modal: Rp {(p.cost_price ?? 0).toLocaleString("id-ID")}
                     </div>
@@ -99,7 +111,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center text-gray-500 py-4 bg-transparent border-none">
+                <td
+                  colSpan={4}
+                  className="text-center text-gray-500 py-4 bg-transparent border-none"
+                >
                   Tidak ada produk
                 </td>
               </tr>

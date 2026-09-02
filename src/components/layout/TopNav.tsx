@@ -47,52 +47,55 @@ export const TopNav: React.FC<TopNavProps> = ({ activeMode, onSelectMode }) => {
       id: "kasir",
       label: "Kasir",
       shortcut: "F1",
-      icon: <IconKasir size={17} />,
+      icon: <IconKasir size={18} />,
     },
     {
       id: "input",
       label: "Stok Barang",
       shortcut: "F2",
-      icon: <IconStok size={17} />,
+      icon: <IconStok size={18} />,
     },
     {
       id: "laporan",
       label: "Laporan Penjualan",
       shortcut: "F3",
-      icon: <IconLaporan size={17} />,
+      icon: <IconLaporan size={18} />,
     },
   ];
 
   return (
-    <header className="h-16 bg-pos-dark text-white px-5 flex items-center justify-between select-none shrink-0 z-30">
+    <header className="h-15 bg-pos-dark text-white border-b border-[#082E47] px-4 flex items-center justify-between select-none shrink-0 z-30 shadow-xs">
       {/* Brand & Shift Info */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="font-bold tracking-tight text-lg text-neutral-100 uppercase">
-            Cahaya Media
+          <span className="font-bold tracking-tight text-lg text-white uppercase">
+            Cahaya POS
           </span>
         </div>
       </div>
 
       {/* Navigation Tabs with Shortcut Badges */}
-      <nav className="flex items-center gap-1.5 bg-pos-light-dark p-1 rounded-xl">
+      <nav className="flex items-center gap-1.5 bg-[#082E47]/90 p-1 rounded-xl border border-[#0F4C75]/50">
         {navItems.map((item) => {
           const isActive = activeMode === item.id;
           return (
             <button
               key={item.id}
               onClick={() => onSelectMode(item.id)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                 isActive
-                  ? "bg-pos-blue text-white shadow-sm"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-pos-blue/80"
+                  ? "bg-pos-blue text-white border border-[#1976D2] shadow-sm"
+                  : "text-blue-100/70 hover:text-white hover:bg-pos-blue/50 border border-transparent"
               }`}
             >
-              <span className={isActive ? "text-white" : "text-neutral-400"}>
+              <span className={isActive ? "text-cyan-300" : "text-blue-200/60"}>
                 {item.icon}
               </span>
               <span>{item.label}</span>
-              <KeyBadge shortcut={item.shortcut} variant={"dark"} />
+              <KeyBadge
+                shortcut={item.shortcut}
+                variant={isActive ? "blue" : "dark"}
+              />
             </button>
           );
         })}
@@ -101,8 +104,8 @@ export const TopNav: React.FC<TopNavProps> = ({ activeMode, onSelectMode }) => {
       {/* System Status & Digital Clock */}
       <div className="flex items-center gap-4">
         <div className="hidden sm:flex items-center gap-2 text-right font-mono">
-          <span className="text-xs text-neutral-400">{dateStr}</span>
-          <span className="text-xs font-bold text-neutral-100 bg-neutral-850 px-2 py-1 rounded tabular-nums">
+          <span className="text-xs text-blue-200/70">{dateStr}</span>
+          <span className="text-sm font-bold text-white bg-[#082E47] px-2.5 py-1 rounded border border-[#0F4C75]/60 tabular-nums">
             {timeStr}
           </span>
         </div>

@@ -21,8 +21,12 @@ export const CashierView: React.FC<CashierViewProps> = ({
   const [message, setMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const totalHarga = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const kembalian = typeof payment === "number" ? Math.max(0, payment - totalHarga) : 0;
+  const totalHarga = cart.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
+  const kembalian =
+    typeof payment === "number" ? Math.max(0, payment - totalHarga) : 0;
 
   const showToast = (msg: string) => {
     setMessage(msg);
@@ -44,10 +48,14 @@ export const CashierView: React.FC<CashierViewProps> = ({
 
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.barcode === product.barcode);
+      const existing = prevCart.find(
+        (item) => item.barcode === product.barcode,
+      );
       if (existing) {
         return prevCart.map((item) =>
-          item.barcode === product.barcode ? { ...item, quantity: item.quantity + 1 } : item
+          item.barcode === product.barcode
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
         );
       }
       return [
@@ -67,7 +75,9 @@ export const CashierView: React.FC<CashierViewProps> = ({
   const handleUpdateQuantity = (barcode: string, quantity: number) => {
     if (quantity > 0) {
       setCart((prev) =>
-        prev.map((item) => (item.barcode === barcode ? { ...item, quantity } : item))
+        prev.map((item) =>
+          item.barcode === barcode ? { ...item, quantity } : item,
+        ),
       );
     } else {
       setCart((prev) => prev.filter((item) => item.barcode !== barcode));
@@ -148,11 +158,13 @@ export const CashierView: React.FC<CashierViewProps> = ({
       {/* Modal Transaksi Berhasil */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+          <div className="bg-white rounded-2xl p-6 w-100 shadow-lg flex flex-col items-center">
             <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
               <IconCheck size={48} />
             </div>
-            <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Transaksi Berhasil!</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+              Transaksi Berhasil!
+            </h2>
             <button
               className="w-full p-4 bg-[#0b5d8a] text-white rounded-xl font-bold text-lg hover:bg-[#084c70] transition-colors cursor-pointer"
               onClick={() => setShowSuccessModal(false)}

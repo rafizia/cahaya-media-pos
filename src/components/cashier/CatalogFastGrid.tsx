@@ -52,7 +52,7 @@ export const CatalogFastGrid: React.FC<CatalogFastGridProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Cari Nama Produk / Barcode... (F5)"
-            className="w-full pl-3 pr-16 py-2 bg-white text-neutral-900 placeholder-neutral-400 rounded-lg text-xs font-medium border border-neutral-300 outline-none focus:border-[#0F62FE] focus:ring-1 focus:ring-[#0F62FE] transition-all"
+            className="w-full pl-3 pr-16 py-2 bg-white text-neutral-900 placeholder-neutral-400 rounded-lg text-sm font-medium border border-neutral-300 outline-none focus:border-pos-blue focus:ring-1 focus:ring-pos-blue transition-all"
           />
           <div className="absolute right-2 flex items-center gap-1">
             {searchTerm && (
@@ -69,7 +69,7 @@ export const CatalogFastGrid: React.FC<CatalogFastGridProps> = ({
         </div>
 
         {/* Category Horizontal Filter */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
             return (
@@ -77,10 +77,10 @@ export const CatalogFastGrid: React.FC<CatalogFastGridProps> = ({
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`text-[11px] px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                className={`text-xs px-3 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-pos-light-dark text-white"
-                    : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+                    ? "bg-pos-blue text-white border border-[#1976D2]"
+                    : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300 border border-neutral-300"
                 }`}
               >
                 {cat}
@@ -94,11 +94,11 @@ export const CatalogFastGrid: React.FC<CatalogFastGridProps> = ({
       <div className="flex-1 overflow-y-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-neutral-100/75 text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-600 border-b border-neutral-200 sticky top-0 z-10">
-              <th className="py-2 px-3">Produk & Barcode</th>
-              <th className="py-2 px-2 text-center w-16">Stok</th>
-              <th className="py-2 px-3 text-right">Harga</th>
-              <th className="py-2 px-2 text-center w-12">Aksi</th>
+            <tr className="bg-neutral-100/75 text-xs font-mono font-bold uppercase tracking-wider text-neutral-600 border-b border-neutral-200 sticky top-0 z-10">
+              <th className="py-2.5 px-3">Produk & Barcode</th>
+              <th className="py-2.5 px-2 text-center w-20">Stok</th>
+              <th className="py-2.5 px-3 text-right">Harga</th>
+              <th className="py-2.5 px-2 text-center w-14">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 text-sm">
@@ -118,39 +118,39 @@ export const CatalogFastGrid: React.FC<CatalogFastGridProps> = ({
                       : ""
                   }`}
                 >
-                  <td className="py-2 px-3">
-                    <div className="font-semibold text-neutral-900 text-xs group-hover:text-[#0F62FE] transition-colors leading-snug">
+                  <td className="py-2.5 px-3">
+                    <div className="font-semibold text-neutral-900 text-sm group-hover:text-pos-blue transition-colors leading-snug">
                       {p.name}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] text-neutral-500 font-mono">
+                      <span className="text-xs text-neutral-500 font-mono">
                         {p.barcode}
                       </span>
                       {p.category && (
-                        <span className="text-[10px] bg-neutral-100 text-neutral-600 px-1.5 py-0.2 rounded border border-neutral-200">
+                        <span className="text-xs bg-neutral-100 text-neutral-600 px-1.5 py-0.2 rounded border border-neutral-200">
                           {p.category}
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="py-2 px-2 text-center font-mono tabular-nums">
-                    <div className="font-bold text-xs text-neutral-800">
+                  <td className="py-2.5 px-2 text-center font-mono tabular-nums">
+                    <div className="font-bold text-sm text-neutral-800">
                       {p.stock}
                     </div>
                     {isOutOfStock ? (
-                      <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1 py-0.2 rounded border border-red-200">
+                      <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1 py-0.2 rounded border border-red-200">
                         Habis
                       </span>
                     ) : isLowStock ? (
-                      <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
                         Menipis
                       </span>
                     ) : null}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono font-bold text-xs text-neutral-900 tabular-nums">
+                  <td className="py-2.5 px-3 text-right font-mono font-bold text-sm text-neutral-900 tabular-nums">
                     Rp {p.price.toLocaleString("id-ID")}
                   </td>
-                  <td className="py-2 px-2 text-center">
+                  <td className="py-2.5 px-2 text-center">
                     <button
                       type="button"
                       disabled={isOutOfStock}
@@ -158,10 +158,10 @@ export const CatalogFastGrid: React.FC<CatalogFastGridProps> = ({
                         e.stopPropagation();
                         if (!isOutOfStock) onAddToCart(p);
                       }}
-                      className={`px-2 py-1 text-xs font-bold rounded-md transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1 text-xs font-bold rounded-md transition-colors cursor-pointer ${
                         isOutOfStock
                           ? "bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                          : "bg-blue-50 text-[#0F62FE] hover:bg-[#0F62FE] hover:text-white border border-blue-200"
+                          : "bg-blue-50 text-pos-blue hover:bg-pos-blue hover:text-white border border-blue-200"
                       }`}
                     >
                       +

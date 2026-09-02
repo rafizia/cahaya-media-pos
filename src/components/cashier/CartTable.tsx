@@ -70,10 +70,18 @@ export const CartTable: React.FC<CartTableProps> = ({
         <table className="w-full border-separate border-spacing-y-2">
           <thead>
             <tr>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-left">Nama</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-center">Jumlah</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga Satuan</th>
-              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">Harga Total</th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-left">
+                Nama
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-center">
+                Jumlah
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">
+                Harga Satuan
+              </th>
+              <th className="text-base text-[#111] font-bold px-4 py-2 text-right">
+                Harga Total
+              </th>
               <th className="text-base text-[#111] font-bold px-4 py-2 text-center w-12"></th>
             </tr>
           </thead>
@@ -108,7 +116,10 @@ export const CartTable: React.FC<CartTableProps> = ({
             ))}
             {cart.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center text-gray-500 py-8 bg-transparent border-none">
+                <td
+                  colSpan={5}
+                  className="text-center text-gray-500 py-8 bg-transparent border-none"
+                >
                   Belum ada barang di keranjang
                 </td>
               </tr>
@@ -120,13 +131,14 @@ export const CartTable: React.FC<CartTableProps> = ({
       {/* MODAL KONFIRMASI HAPUS ITEM DARI KERANJANG */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+          <div className="bg-white rounded-2xl p-6 w-100 shadow-lg flex flex-col items-center">
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
               <IconTrash size={32} />
             </div>
             <h2 className="text-xl font-bold mb-2">Hapus Barang?</h2>
             <p className="text-center text-gray-600 mb-6">
-              Apakah Anda yakin ingin menghapus <strong>{itemToDelete.name}</strong> dari keranjang?
+              Apakah Anda yakin ingin menghapus{" "}
+              <strong>{itemToDelete.name}</strong> dari keranjang?
             </p>
             <div className="flex gap-4 w-full">
               <button
@@ -149,16 +161,27 @@ export const CartTable: React.FC<CartTableProps> = ({
       {/* MODAL EDIT JUMLAH BARANG */}
       {itemToEdit && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-[400px] shadow-lg flex flex-col items-center">
+          <div className="bg-white rounded-2xl p-6 w-100 shadow-lg flex flex-col items-center">
             <h2 className="text-xl font-bold mb-2">Edit Jumlah</h2>
-            <p className="text-center text-gray-600 mb-6 font-medium">{itemToEdit.name}</p>
-            <form onSubmit={saveEditedQuantity} className="w-full flex flex-col gap-4">
+            <p className="text-center text-gray-600 mb-6 font-medium">
+              {itemToEdit.name}
+            </p>
+            <form
+              onSubmit={saveEditedQuantity}
+              className="w-full flex flex-col gap-4"
+            >
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Jumlah Barang</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Jumlah Barang
+                </label>
                 <input
                   type="number"
                   value={editQuantity}
-                  onChange={(e) => setEditQuantity(e.target.value ? Number(e.target.value) : "")}
+                  onChange={(e) =>
+                    setEditQuantity(
+                      e.target.value ? Number(e.target.value) : "",
+                    )
+                  }
                   className="w-full p-4 border border-gray-300 rounded-xl text-lg font-bold text-center focus:border-[#0b5d8a] outline-none"
                   autoFocus
                   min={0}

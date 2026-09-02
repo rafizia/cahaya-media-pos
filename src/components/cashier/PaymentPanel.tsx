@@ -24,7 +24,9 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({
       {/* Total Belanja */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="m-0 text-2xl font-bold">Total</h2>
-        <h2 className="m-0 text-2xl font-bold">Rp {totalHarga.toLocaleString("id-ID")}</h2>
+        <h2 className="m-0 text-2xl font-bold">
+          Rp {totalHarga.toLocaleString("id-ID")}
+        </h2>
       </div>
 
       {/* Input Bayar */}
@@ -35,7 +37,9 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({
           <input
             type="number"
             value={payment}
-            onChange={(e) => onPaymentChange(e.target.value ? Number(e.target.value) : "")}
+            onChange={(e) =>
+              onPaymentChange(e.target.value ? Number(e.target.value) : "")
+            }
             className="w-37.5 px-3.5 py-2.5 bg-gray-100 rounded-xl text-right text-base font-semibold outline-none focus:bg-gray-200 transition-colors shadow-inner"
             placeholder="0"
             min={0}
@@ -78,7 +82,11 @@ export const PaymentPanel: React.FC<PaymentPanelProps> = ({
       </div>
 
       {/* Validation / Alert Message */}
-      {message && <div className="text-center text-red-600 font-bold mb-2 text-sm">{message}</div>}
+      {message && (
+        <div className="text-center text-red-600 font-bold mb-2 text-sm">
+          {message}
+        </div>
+      )}
 
       {/* Selesai Button */}
       <button

@@ -26,6 +26,12 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
   const [stock, setStock] = useState<number | "">("");
   const [minStock, setMinStock] = useState<number | "">(5);
 
+  const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   const categories = [
     "Umum",
     "Alat Tulis",
@@ -48,26 +54,77 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!barcode.trim() || !name.trim() || price === "" || stock === "") return;
+    setFeedback(null);
 
-    await onAddProduct({
-      barcode: barcode.trim(),
-      name: name.trim(),
-      category: category || "Umum",
-      cost_price: costNum,
-      price: priceNum,
-      stock: typeof stock === "number" ? stock : 0,
-      min_stock: typeof minStock === "number" ? minStock : 5,
-    });
+    const cleanBarcode = barcode.trim();
+    const cleanName = name.trim();
 
-    // Reset form after submit
-    setBarcode("");
-    setName("");
-    setCategory("Umum");
-    setCostPrice("");
-    setPrice("");
-    setStock("");
-    setMinStock(5);
+    if (!cleanBarcode) {
+      setFeedback({
+        type: "error",
+        message: "Harap isi Barcode / Kode Produk terlebih dahulu!",
+      });
+      return;
+    }
+    if (!cleanName) {
+      setFeedback({
+        type: "error",
+        message: "Harap isi Nama Produk terlebih dahulu!",
+      });
+      return;
+    }
+    if (price === "" || priceNum < 0) {
+      setFeedback({
+        type: "error",
+        message: "Harap isi Harga Jual produk yang valid!",
+      });
+      return;
+    }
+    if (stock === "" || (typeof stock === "number" && stock < 0)) {
+      setFeedback({
+        type: "error",
+        message: "Harap isi Jumlah Stok Awal yang valid!",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await onAddProduct({
+        barcode: cleanBarcode,
+        name: cleanName,
+        category: category.trim() || "Umum",
+        cost_price: costNum,
+        price: priceNum,
+        stock: typeof stock === "number" ? stock : 0,
+        min_stock: typeof minStock === "number" ? minStock : 5,
+      });
+
+      setFeedback({
+        type: "success",
+        message: `Produk "${cleanName}" berhasil disimpan ke database!`,
+      });
+
+      // Reset form after submit
+      setBarcode("");
+      setName("");
+      setCategory("Umum");
+      setCostPrice("");
+      setPrice("");
+      setStock("");
+      setMinStock(5);
+
+      setTimeout(() => {
+        setFeedback((prev) => (prev?.type === "success" ? null : prev));
+      }, 4000);
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: `Gagal menyimpan produk: ${error}`,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -94,7 +151,7 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
             <button
               type="button"
               onClick={handleGenerateBarcode}
-              className="text-[11px] font-semibold text-[#0F62FE] hover:underline cursor-pointer"
+              className="text-xs font-semibold text-pos-blue hover:underline cursor-pointer"
             >
               + Acak Barcode
             </button>
@@ -105,7 +162,7 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
             onChange={(e) => setBarcode(e.target.value)}
             placeholder="Contoh: 899123456789"
             required
-            className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-medium outline-none focus:border-[#0F62FE] focus:bg-white transition-all"
+            className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-mono font-medium outline-none focus:border-pos-blue focus:bg-white transition-all"
           />
         </div>
 
@@ -120,7 +177,7 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
             onChange={(e) => setName(e.target.value)}
             placeholder="Contoh: Buku Tulis Sinar Dunia 38L"
             required
-            className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-medium outline-none focus:border-[#0F62FE] focus:bg-white transition-all"
+            className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-medium outline-none focus:border-pos-blue focus:bg-white transition-all"
           />
         </div>
 
@@ -133,7 +190,7 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
             type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-medium outline-none focus:border-[#0F62FE] focus:bg-white transition-all mb-1.5"
+            className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-medium outline-none focus:border-pos-blue focus:bg-white transition-all mb-1.5"
           />
           <div className="flex flex-wrap gap-1">
             {categories.map((cat) => (
@@ -141,10 +198,10 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
                 key={cat}
                 type="button"
                 onClick={() => setCategory(cat)}
-                className={`text-[10px] px-2 py-0.5 rounded font-medium border transition-colors cursor-pointer ${
+                className={`text-xs px-2.5 py-0.5 rounded font-medium border transition-colors cursor-pointer ${
                   category === cat
-                    ? "bg-neutral-900 text-white border-neutral-900"
-                    : "bg-neutral-100 text-neutral-600 border-neutral-200 hover:bg-neutral-200"
+                    ? "bg-pos-blue text-white border-[#1976D2]"
+                    : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300 border border-neutral-300"
                 }`}
               >
                 {cat}
@@ -156,7 +213,7 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
         {/* Pricing Grid */}
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-neutral-100">
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+            <label className="block text-xs font-bold text-neutral-600 mb-1">
               Harga Modal (Rp)
             </label>
             <input
@@ -167,11 +224,11 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
                 setCostPrice(e.target.value ? Number(e.target.value) : "")
               }
               placeholder="0"
-              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-bold outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
+              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-mono font-bold outline-none focus:border-pos-blue focus:bg-white transition-all tabular-nums"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+            <label className="block text-xs font-bold text-neutral-600 mb-1">
               Harga Jual (Rp) *
             </label>
             <input
@@ -183,15 +240,15 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
               }
               placeholder="0"
               required
-              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-bold text-[#0F62FE] outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
+              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-mono font-bold text-pos-blue outline-none focus:border-pos-blue focus:bg-white transition-all tabular-nums"
             />
           </div>
         </div>
 
         {/* Profit Margin Indicator */}
         {priceNum > 0 && (
-          <div className="px-3 py-2 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs flex items-center justify-between text-emerald-800 font-mono">
-            <span className="font-sans text-[11px] font-medium text-emerald-700">
+          <div className="px-3 py-2 bg-emerald-50/70 border border-emerald-200 rounded-lg text-sm flex items-center justify-between text-emerald-800 font-mono">
+            <span className="font-sans text-xs font-medium text-emerald-700">
               Estimasi Margin Laba:
             </span>
             <span className="font-bold tabular-nums">
@@ -203,7 +260,7 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
         {/* Stock & Minimum Alert Grid */}
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-neutral-100">
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+            <label className="block text-xs font-bold text-neutral-600 mb-1">
               Stok Awal *
             </label>
             <input
@@ -215,11 +272,11 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
               }
               placeholder="0"
               required
-              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-bold outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
+              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-mono font-bold outline-none focus:border-pos-blue focus:bg-white transition-all tabular-nums"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+            <label className="block text-xs font-bold text-neutral-600 mb-1">
               Batas Minimum (Alert)
             </label>
             <input
@@ -230,18 +287,44 @@ export const ProductEntryForm: React.FC<ProductEntryFormProps> = ({
                 setMinStock(e.target.value ? Number(e.target.value) : "")
               }
               placeholder="5"
-              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-xs font-mono font-medium outline-none focus:border-[#0F62FE] focus:bg-white transition-all tabular-nums"
+              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-sm font-mono font-medium outline-none focus:border-pos-blue focus:bg-white transition-all tabular-nums"
             />
           </div>
         </div>
 
+        {/* Feedback Alert Banner */}
+        {feedback && (
+          <div
+            className={`p-3 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 border animate-in fade-in duration-150 ${
+              feedback.type === "success"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                : "bg-rose-50 text-rose-800 border-rose-300"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span>{feedback.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFeedback(null)}
+              className="text-neutral-400 hover:text-neutral-700 font-bold px-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="mt-2 w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+          disabled={submitting || isSubmitting}
+          className="mt-1 w-full py-3.5 px-4 bg-pos-blue hover:bg-[#084C70] disabled:bg-neutral-400 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs"
         >
-          <span>{isSubmitting ? "Menyimpan..." : "Simpan ke Database"}</span>
+          <span>
+            {submitting || isSubmitting
+              ? "Menyimpan ke Database..."
+              : "Simpan ke Database"}
+          </span>
           <KeyBadge shortcut="Enter ↵" variant="dark" />
         </button>
       </form>

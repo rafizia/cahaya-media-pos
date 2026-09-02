@@ -50,7 +50,9 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
           <div>
             <h2 className="text-lg font-bold text-neutral-900">{title}</h2>
             {subtitle && (
-              <p className="text-xs text-neutral-500 font-mono mt-0.5">{subtitle}</p>
+              <p className="text-xs text-neutral-500 font-mono mt-0.5">
+                {subtitle}
+              </p>
             )}
           </div>
           {showCloseButton && (

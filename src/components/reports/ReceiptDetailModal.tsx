@@ -84,9 +84,9 @@ export const ReceiptDetailModal: React.FC<ReceiptDetailModalProps> = ({
         </div>
 
         {/* Financial Breakdown Summary */}
-        <div className="p-3.5 bg-neutral-900 text-white rounded-xl border border-neutral-800 flex flex-col gap-1.5 text-xs">
+        <div className="p-3.5 bg-[#0B3C5D] text-white rounded-xl border border-[#082E47] flex flex-col gap-1.5 text-xs">
           <div className="flex justify-between items-baseline pt-0.5">
-            <span className="font-sans text-neutral-400 font-bold uppercase tracking-wider text-[11px]">
+            <span className="font-sans text-blue-200/80 font-bold uppercase tracking-wider text-[11px]">
               Total Belanja:
             </span>
             <span className="text-lg font-extrabold text-white tabular-nums">
@@ -94,17 +94,17 @@ export const ReceiptDetailModal: React.FC<ReceiptDetailModalProps> = ({
             </span>
           </div>
 
-          <div className="flex justify-between text-neutral-400 pt-1 border-t border-neutral-800">
+          <div className="flex justify-between text-blue-200/70 pt-1 border-t border-[#082E47]">
             <span>Uang Diterima:</span>
-            <span className="text-neutral-200 tabular-nums">Rp {sale.amount_paid.toLocaleString("id-ID")}</span>
+            <span className="text-white tabular-nums">Rp {sale.amount_paid.toLocaleString("id-ID")}</span>
           </div>
 
-          <div className="flex justify-between text-neutral-400">
+          <div className="flex justify-between text-blue-200/70">
             <span>Kembalian:</span>
-            <span className="text-neutral-200 tabular-nums">Rp {sale.change_amount.toLocaleString("id-ID")}</span>
+            <span className="text-white tabular-nums">Rp {sale.change_amount.toLocaleString("id-ID")}</span>
           </div>
 
-          <div className="flex justify-between text-emerald-400 pt-1.5 border-t border-neutral-800 font-bold">
+          <div className="flex justify-between text-emerald-300 pt-1.5 border-t border-[#082E47] font-bold">
             <span>Keuntungan (Laba Kotor):</span>
             <span className="tabular-nums">+Rp {sale.total_profit.toLocaleString("id-ID")}</span>
           </div>
@@ -123,7 +123,7 @@ export const ReceiptDetailModal: React.FC<ReceiptDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+            className="flex-1 py-2.5 px-4 bg-[#0B5D8A] hover:bg-[#084C70] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-xs"
           >
             Tutup (Esc)
           </button>

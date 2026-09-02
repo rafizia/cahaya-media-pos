@@ -1,13 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Inter', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
-  --color-pos-dark: #0A2647;
-  --color-pos-light-dark: #144272;
-  --color-pos-blue: #205295;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --color-pos-dark: #0B3C5D;
   --color-pos-canvas: #F8F9FA;
   --color-pos-border: #E5E7EB;
+  --color-pos-blue: #0B5D8A;
   --color-pos-green: #057A55;
   --color-pos-amber: #B45309;
   --color-pos-red: #E02424;
@@ -21,7 +20,23 @@
   font-display: swap;
 }
 
-/* Custom performance-first scrollbar */
+/* Global root typography defaults - slightly larger base for clear POS readability */
+html {
+  font-size: 15px;
+}
+
+html, body {
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Monospaced figures & tabular alignment in Inter */
+.font-mono,
+.tabular-nums,
+kbd,
+table {
+  font-feature-settings: "tnum" 1, "zero" 1, "cv05" 1;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
