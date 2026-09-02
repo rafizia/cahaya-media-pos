@@ -335,7 +335,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cahaya-media-pos"
+name = "cahaya-pos"
 version = "0.1.0"
 dependencies = [
  "rusqlite",
@@ -344,6 +344,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "uuid",
 ]
 
 [[package]]
